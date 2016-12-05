@@ -1,107 +1,126 @@
 <template>
   <group title="筛选条件">
-    <popup-picker v-if="userType===1" title="已选择班级" :data="classList" :columns="1" :value.sync="selectClass" show-name></popup-picker>
-    <popup-picker v-else title="已选择学生" :data="studentList" @on-hide="onHide" :columns="1" :value.sync="selectClass" show-name></popup-picker>
-    <popup-picker title="已选择学年" :data="yearsList" :columns="1" :value.sync="selectYear" show-name></popup-picker>
+    <popup-picker v-if="userType===1" title="已选择班级" :data="classList" :columns="(classList && classList.length>0)?1:0" :value.sync="selectClass" show-name></popup-picker>
+    <popup-picker v-else title="已选择学生" :data="studentList" :columns="(studentList && studentList.length>0)?1:0" :value.sync="selectClass" show-name></popup-picker>
+    <popup-picker title="已选择学年" :data="yearsList" :columns="(yearsList && yearsList.length>0)?1:0" :value.sync="selectYear" show-name></popup-picker>
   </group>
   <group title="考试列表" v-if="userType===1">
-    <cell v-for="item in exams" :title="item.name" :value="item.time" :link="'/exams/'+item.id"></cell>
+    <nodata v-show="!exams"></nodata>
+    <cell v-for="item in exams" :title="item.name" :inline-desc="item.gradeName" :value="item.time" :link="'/exams/'+item.id"></cell>
   </group>
   <group title="考试列表" v-else>
-    <cell v-for="item in exams" :title="item.name" :value="item.time" :link="'/exams/'+item.id + '/user/' + selectUser.value"></cell>
+    <nodata v-show="!exams"></nodata>
+    <cell v-for="item in exams" :title="item.name" :inline-desc="item.gradeName" :value="item.time" :link="'/exams/'+item.id + '/user/'+selectClass[0]"></cell>
   </group>
 </template>
 <script>
   import Group from 'vux-src/group'
   import PopupPicker from 'vux-src/popup-picker'
   import Cell from 'vux-src/cell'
+  import AppHelper from 'util/apphelper'
 
-  export default {
+  // 全局变量,注意不要与其他页面重名
+  // 重定向后可保存页面数据
+  let mExamsLoadType = 0
+  let mExamsYear = ''
+  let dataSet = {
+    selectYear: [],
+    selectClass: []
+  }
+  const examsSelect = {
     components: {
       Group,
       PopupPicker,
       Cell
     },
-    created: function() {
-      if (this.$route.query.userType) {
-        this.userType = parseInt(this.$route.query.userType)
+    data() {
+      return dataSet
+    },
+    created() {
+      this.userType = AppHelper.getUserType()
+      if (mExamsLoadType === 0) {
+        this.loadData(1)
       }
     },
-    data: function() {
-      return {
-        userType: 1,
-        selectClass: ['1'],
-        selectYear: ['2012'],
-        exams: [{
-          id: '1',
-          name: '2015年下学期期末考试',
-          time: '2016-01-30'
-        }, {
-          id: '2',
-          name: '2015年下学期期末考试',
-          time: '2016-01-30'
-        }, {
-          id: '3',
-          name: '2015年上学期期末考试',
-          time: '2015-06-30'
-        }, {
-          id: '4',
-          name: '2015年上学期期末考试',
-          time: '2015-06-30'
-        }],
-        classList: [{
-          name: '2012级1班',
-          value: '1'
-        }, {
-          name: '2012级2班',
-          value: '2'
-        }, {
-          name: '2012级3班',
-          value: '3'
-        }, {
-          name: '2012级4班',
-          value: '4'
-        }],
-        yearsList: [{
-          name: '2012学年',
-          value: '2012'
-        }, {
-          name: '2013学年',
-          value: '2013'
-        }, {
-          name: '2014学年',
-          value: '2014'
-        }, {
-          name: '2015学年',
-          value: '2015'
-        }],
-        studentList: [{
-          name: '张三',
-          value: '1'
-        }, {
-          name: '陈鑫',
-          value: '2'
-        }, {
-          name: '小强',
-          value: '3'
-        }, {
-          name: '黎明',
-          value: '4'
-        }],
-        selectUser: {
-          value: '1'
+    watch: {
+      selectClass(val, oldVal) {
+        if (!oldVal || oldVal.length === 0 || val === oldVal) {
+          return
+        }
+        if (val && val.length > 0) {
+          // 选择班级结束
+          if (this.userType === 1) {
+            // 切换班级
+            AppHelper.setClassId(val[0])
+            this.loadData(2)
+          } else if (this.userType === 2) {
+            // 切换学生
+            AppHelper.setStudentId(val[0])
+            this.loadData(2)
+          }
+        }
+      },
+      selectYear(val, oldVal) {
+        if (!oldVal || oldVal.length === 0 || val === oldVal) {
+          return
+        }
+        if (val && val.length > 0) {
+          // 切换学年
+          if (mExamsYear !== val[0]) {
+            mExamsYear = val[0]
+            this.loadData(3)
+          }
         }
       }
     },
     methods: {
-      onHide(type) {
-        if (this.userType === 2) {
-          const _ = require('lodash')
-          this.selectUser = _.find(this.studentList, {
-            value: this.selectClass[0]
-          })
+      loadData(type) {
+        mExamsLoadType = type
+        switch (mExamsLoadType) {
+          case 1: // 第一次加载
+            break
+          case 2: // 切换班级或者学生
+            mExamsYear = ''
+            this.selectYear = []
+            dataSet.yearsList = []
+            delete dataSet.exams
+            break
+          case 3: // 切换学年
+            delete dataSet.exams
+            break
         }
+        const cfg = {
+          // isFirseLoad: true,
+          loadType: mExamsLoadType,
+          examsYear: mExamsYear
+        }
+        AppHelper.post(AppHelper.ApiUrls.exams_index, cfg).then((jsonData) => {
+          dataSet = Object.assign({}, dataSet, jsonData.data)
+          this.$data = dataSet
+          this.userType = AppHelper.getUserType()
+
+          if (this.selectYear.length < 1 && this.yearsList.length > 0) {
+            mExamsYear = this.yearsList[0].value
+            this.selectYear = [mExamsYear]
+          }
+          if (this.userType === 1) {
+            if (this.selectClass.length < 1 && this.classList.length > 0) {
+              if (AppHelper.getClassId().length < 1) {
+                AppHelper.setClassId(this.classList[0].value)
+              }
+              this.selectClass = [AppHelper.getClassId()]
+            }
+          } else if (this.userType === 2) {
+            if (this.selectClass.length < 1 && this.studentList.length > 0) {
+              if (AppHelper.getStudentId().length < 1) {
+                AppHelper.setStudentId(this.studentList[0].value)
+              }
+              this.selectClass = [AppHelper.getStudentId()]
+            }
+          }
+        })
       }
     }
   }
+  export default examsSelect
 </script>

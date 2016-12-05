@@ -7,13 +7,20 @@
 <script>
   import Group from 'vux-src/group'
   import Cell from 'vux-src/cell'
+  // import AppHelper from 'util/apphelper'
+  // import LocalStore from 'util/localStore'
   export default {
     components: {
       Group,
       Cell
     },
-    data() {
-      return {}
+    ready() {
+      // LocalStore.clear()
+      // AppHelper.post(AppHelper.ApiUrls.exams_index, {
+      //   examsYear: ''
+      // }).then((ok) => {
+      //   console.log(ok)
+      // })
     }
   }
 </script>

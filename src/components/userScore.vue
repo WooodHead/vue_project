@@ -1,19 +1,22 @@
 <template>
   <group :title="headTitle">
-    <flexbox :gutter="0" class="flex-tab flex-tab-head">
-      <flexbox-item :span="5">科目</flexbox-item>
-      <flexbox-item :span="3">得分</flexbox-item>
-      <flexbox-item :span="4">平均分</flexbox-item>
-    </flexbox>
-    <div class="hr_line"></div>
-    <flexbox v-for="item in subjects" class="flex-tab" :gutter="0">
-      <flexbox-item :span="5">{{ item.subName }}</flexbox-item>
-      <flexbox-item :span="3">{{ item.score }}</flexbox-item>
-      <flexbox-item :span="4">{{ item.avgScore }}</flexbox-item>
-    </flexbox>
+    <nodata v-show="!subjects||subjects.length<1"></nodata>
+    <div v-show="subjects&&subjects.length>0">
+      <flexbox :gutter="0" class="flex-tab flex-tab-head">
+        <flexbox-item :span="5">科目</flexbox-item>
+        <flexbox-item :span="3">得分</flexbox-item>
+        <flexbox-item :span="4">平均分</flexbox-item>
+      </flexbox>
+      <div class="hr_line"></div>
+      <flexbox v-for="item in subjects" class="flex-tab" :gutter="0">
+        <flexbox-item :span="5">{{ item.subName }}</flexbox-item>
+        <flexbox-item :span="3">{{ item.score }}</flexbox-item>
+        <flexbox-item :span="4">{{ item.avgScore }}</flexbox-item>
+      </flexbox>
+    </div>
   </group>
-  <group v-if="subjects.length > 3" title="成绩分析图">
-    <div id="mainChart" style="width:100%;height:350px;padding:0 10px 10px 10px"></div>
+  <group title="成绩分析图">
+      <div id="mainChart" style="margin-bottom:20px;width:100%;height:350px;padding:0 10px 10px 10px"></div>
   </group>
 </template>
 <script>
@@ -31,84 +34,76 @@
       FlexboxItem
     },
     data() {
-      return {
-        headTitle: '小明的2015学年半期考试',
-        subjects: [{
-          subName: '总分',
-          score: 388,
-          avgScore: 270,
-          maxValue: 400
-        }, {
-          subName: '语文',
-          score: 81,
-          avgScore: 80,
-          maxValue: 120
-        }, {
-          subName: '数学',
-          score: 91,
-          avgScore: 85,
-          maxValue: 120
-        }, {
-          subName: '英语',
-          score: 90,
-          avgScore: 82,
-          maxValue: 100
-        }, {
-          subName: '科学',
-          score: 70,
-          avgScore: 82,
-          maxValue: 100
-        }]
-      }
+      return {}
     },
     created() {
-      if (this.subjects.length < 4) {
-        return
-      }
-      const indicator = []
-      const userScores = []
-      const avgScores = []
-      for (var i in this.subjects) {
-        const one = this.subjects[i]
-        if (one.subName !== '总分') {
-          indicator.push({
-            name: one.subName,
-            max: one.maxValue
-          })
-          userScores.push(one.score)
-          avgScores.push(one.avgScore)
-        }
-      }
       AppHelper.script('echarts', () => {
         // 基于准备好的dom，初始化echarts实例
-        const myChart = window.echarts.init(document.getElementById('mainChart'))
-          // 绘制图表
-        myChart.setOption({
-          title: {
-            show: false
-          },
-          legend: {
-            top: 'bottom',
-            padding: [10, 0, 0, 0],
-            data: ['个人得分', '班级评价分']
-          },
-          radar: {
-            // shape: 'circle',
-            indicator: indicator
-          },
-          series: [{
-            type: 'radar',
-            // areaStyle: {normal: {}},
-            data: [{
-              value: userScores,
-              name: '个人得分'
-            }, {
-              value: avgScores,
-              name: '班级评价分'
-            }]
-          }]
-        })
+        const nodeDom = document.getElementById('mainChart')
+        if (nodeDom) {
+          nodeDom.innerHTML = ''
+          this.loadData(window.echarts.init(nodeDom))
+        }
       })
+    },
+    methods: {
+      loadData(myChart) {
+        const cfg = {
+          studentId: AppHelper.getParams('studentId'),
+          examId: AppHelper.getParams('examId')
+        }
+        AppHelper.post(AppHelper.ApiUrls.exams_student, cfg).then((jsonData) => {
+          this.$data = jsonData.data
+          if (!this.subjects || this.subjects.length < 4) {
+            return
+          }
+          const indicators = []
+          const userScores = []
+          const avgScores = []
+          const len = this.subjects.length
+          for (let i = 0; i < len; i++) {
+            const one = this.subjects[i]
+            if (one.isShowChart === true) {
+              indicators.push({
+                name: one.subName,
+                max: one.maxValue
+              })
+              userScores.push(one.score)
+              avgScores.push(one.avgScore)
+            }
+          }
+          // 数据太少不用绘图
+          if (indicators.length < 4) {
+            return
+          }
+          // 绘制图表
+          myChart.setOption({
+            title: {
+              show: false
+            },
+            legend: {
+              top: 'bottom',
+              padding: [10, 0, 0, 0],
+              data: ['个人得分', '班级评均分']
+            },
+            radar: {
+              // shape: 'circle',
+              indicator: indicators
+            },
+            series: [{
+              type: 'radar',
+              // areaStyle: {normal: {}},
+              data: [{
+                value: userScores,
+                name: '个人得分'
+              }, {
+                value: avgScores,
+                name: '班级评均分'
+              }]
+            }]
+          })
+        })
+      }
     }
   }
 </script>

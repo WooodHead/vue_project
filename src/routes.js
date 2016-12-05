@@ -19,7 +19,7 @@ export default function (router) {
         require(['components/classScore'], resolve)
       }
     },
-    '/exams/:examId/user/:userId': {
+    '/exams/:examId/user/:studentId': {
       component: (resolve) => {
         require(['components/userScore'], resolve)
       }

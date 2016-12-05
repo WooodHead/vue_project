@@ -1,0 +1,189 @@
+// URL: /api/exams/index
+// 主界面
+{
+  exams: [ // 考试列表(教师,家长)
+    {
+      id: '1',
+      name: '2015年下学期期末考试',
+      time: '2016-01-30'
+    },
+    {
+      id: '2',
+      name: '2015年下学期期末考试',
+      time: '2016-01-30'
+    },
+    {
+      id: '3',
+      name: '2015年上学期期末考试',
+      time: '2015-06-30'
+    },
+    {
+      id: '4',
+      name: '2015年上学期期末考试',
+      time: '2015-06-30'
+    }
+  ],
+  classList: [ // 班级列表(教师)
+    {
+      name: '2012级1班',
+      value: '1'
+    },
+    {
+      name: '2012级2班',
+      value: '2'
+    },
+    {
+      name: '2012级3班',
+      value: '3'
+    },
+    {
+      name: '2012级4班',
+      value: '4'
+    }
+  ],
+  yearsList: [ // 学年列表(教师,家长)
+    {
+      name: '2012学年',
+      value: '2012'
+    },
+    {
+      name: '2013学年',
+      value: '2013'
+    },
+    {
+      name: '2014学年',
+      value: '2014'
+    },
+    {
+      name: '2015学年',
+      value: '2015'
+    }
+  ],
+  studentList: [ // 学生(家长)
+    {
+      name: '张三',
+      value: '1'
+    },
+    {
+      name: '陈鑫',
+      value: '2'
+    },
+    {
+      name: '小强',
+      value: '3'
+    },
+    {
+      name: '黎明',
+      value: '4'
+    }
+  ]
+}
+// URL: /api/exams/:examId
+// 考试成绩详细(教师)
+{
+  avgScore: '88',
+  maxScore: {
+    userId: '1',
+    name: '小明',
+    score: '98'
+  },
+  minScore: {
+    userId: '2',
+    name: '小红',
+    score: '68'
+  },
+  subjects: [ // 科目列表
+    {
+      name: '总分',
+      value: '0'
+    },
+    {
+      name: '语文',
+      value: '1'
+    },
+    {
+      name: '数学',
+      value: '2'
+    },
+    {
+      name: '英语',
+      value: '3'
+    }
+  ],
+  studentList: [ // 考试排名
+    {
+      userId: '1',
+      name: '小明',
+      ranking: '1',
+      score: '98'
+    },
+    {
+      userId: '2',
+      name: '陈鑫',
+      ranking: '2',
+      score: '90'
+    },
+    {
+      userId: '3',
+      name: '陈鑫',
+      ranking: '2',
+      score: '90'
+    },
+    {
+      userId: '4',
+      name: '陈鑫',
+      ranking: '4',
+      score: '80'
+    },
+    {
+      userId: '5',
+      name: '陈鑫',
+      ranking: '5',
+      score: '79'
+    },
+    {
+      userId: '6',
+      name: '小红',
+      ranking: '6',
+      score: '68'
+    }
+  ]
+}
+// URL: /api/exams/:examId/user/:userId
+// 学生成绩详细(教师,家长)
+// 当考试科目小于3科时不用返回科目[总分]
+{
+  headTitle: '小明的2015学年半期考试',
+  subjects: [
+    {
+      subName: '总分', // 科目名称
+      score: 388,     // 成绩
+      avgScore: 270,  // 平均分
+      maxValue: 400   // 科目最大值
+    },
+    {
+      subName: '语文',
+      score: 81,
+      avgScore: 80,
+      maxValue: 120
+    },
+    {
+      subName: '数学',
+      score: 91,
+      avgScore: 85,
+      maxValue: 120
+    },
+    {
+      subName: '英语',
+      score: 90,
+      avgScore: 82,
+      maxValue: 100
+    },
+    {
+      subName: '科学',
+      score: 70,
+      avgScore: 82,
+      maxValue: 100
+    }
+  ]
+}

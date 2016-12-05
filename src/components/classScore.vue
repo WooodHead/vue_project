@@ -1,84 +1,102 @@
 <template>
   <group title="考试详情">
-    <popup-picker title="已选择科目" :data="subjects" :columns="1" :value.sync="selectValue" show-name></popup-picker>
-    <cell title="平均分" :value="avgScore"></cell>
-    <cell title="最高分" :value="maxScore.name + '(' + maxScore.score + '分)'" :link="{ path: 'user/'+maxScore.userId, append: true}" ></cell>
-    <cell title="最低分" :value="minScore.name + '(' + minScore.score + '分)'" :link="{ path: 'user/'+minScore.userId, append: true}"></cell>
+    <popup-picker title="已选择科目" :data="subjects" :columns="(subjects && subjects.length>0)?1:0" :value.sync="selectValue" show-name></popup-picker>
+    <cell v-show="avgScoreStr" title="平均分" :value="avgScoreStr"></cell>
+    <cell v-show="maxScoreStr" title="最高分" :value="maxScoreStr" :link="maxuserurl" ></cell>
+    <cell v-show="minScoreStr" title="最低分" :value="minScoreStr" :link="minuserurl"></cell>
   </group>
   <group title="成绩列表">
-    <cell v-for="item in studentList" :title="item.ranking + ' ' + item.name" :value="item.score" :link="{ path: 'user/'+item.userId, append: true}"></cell>
+    <nodata v-show="!studentList"></nodata>
+    <cell v-for="item in studentList" :title="item.ranking + ' ' + item.name" :value="typeof item.score ==='number' ? item.score+'分':item.score" :link="{ path: 'user/'+item.userId, append: true}"></cell>
   </group>
 </template>
 <script>
   import Group from 'vux-src/group'
   import PopupPicker from 'vux-src/popup-picker'
   import Cell from 'vux-src/cell'
+  import AppHelper from 'util/apphelper'
 
+  // 全局变量,重定向后可保存页面数据
+  let mLoadType = 0
+  let mExamsId = ''
+  let mCourseId = ''
+  let dataSet = {
+    selectValue: []
+  }
   export default {
     components: {
       Group,
       PopupPicker,
       Cell
     },
-    data: function() {
-      return {
-        avgScore: '88',
-        maxScore: {
-          userId: '1',
-          name: '小明',
-          score: '98'
-        },
-        minScore: {
-          userId: '2',
-          name: '小红',
-          score: '68'
-        },
-        selectValue: ['1'],
-        subjects: [{
-          name: '总分',
-          value: '0'
-        }, {
-          name: '语文',
-          value: '1'
-        }, {
-          name: '数学',
-          value: '2'
-        }, {
-          name: '英语',
-          value: '3'
-        }],
-        studentList: [{
-          userId: '1',
-          name: '小明',
-          ranking: '1',
-          score: '98'
-        }, {
-          userId: '2',
-          name: '陈鑫',
-          ranking: '2',
-          score: '90'
-        }, {
-          userId: '3',
-          name: '陈鑫',
-          ranking: '2',
-          score: '90'
-        }, {
-          userId: '4',
-          name: '陈鑫',
-          ranking: '4',
-          score: '80'
-        }, {
-          userId: '5',
-          name: '陈鑫',
-          ranking: '5',
-          score: '79'
-        }, {
-          userId: '6',
-          name: '小红',
-          ranking: '6',
-          score: '68'
-        }]
+    created() {
+      if (mLoadType === 0 || mExamsId !== AppHelper.getParams('examId')) {
+        mExamsId = AppHelper.getParams('examId')
+        this.loadData(1)
       }
+    },
+    watch: {
+      selectValue(val, oldVal) {
+        if (!oldVal || oldVal.length === 0 || val === oldVal) {
+          return
+        }
+        if (val && val.length > 0) {
+          mCourseId = val[0]
+          this.loadData(2)
+        }
+      }
+    },
+    methods: {
+      loadData(type) {
+        if (type === 1) {
+          dataSet = {
+            selectValue: []
+          }
+        }
+        mLoadType = type
+        const cfg = {
+          examId: mExamsId,
+          loadType: mLoadType,
+          courseId: mCourseId
+        }
+        AppHelper.post(AppHelper.ApiUrls.exams_detail, cfg).then((jsonData) => {
+          delete dataSet.avgScore
+          delete dataSet.maxScore
+          delete dataSet.minScore
+
+          dataSet = Object.assign({}, dataSet, jsonData.data)
+          this.$data = dataSet
+          if (this.selectValue.length < 1 && this.subjects.length > 0) {
+            mCourseId = this.subjects[0].value
+            this.selectValue = [mCourseId]
+          }
+          delete this.avgScoreStr
+          delete this.maxScoreStr
+          delete this.maxuserurl
+          delete this.minScoreStr
+          delete this.minuserurl
+          if (this.avgScore) {
+            this.avgScoreStr = this.avgScore + '分'
+          }
+          if (this.maxScore && this.maxScore.name) {
+            this.maxuserurl = {
+              path: 'user/' + this.maxScore.userId,
+              append: true
+            }
+            this.maxScoreStr = this.maxScore.name + '(' + this.maxScore.score + '分)'
+          }
+          if (this.minScore && this.minScore.name) {
+            this.minuserurl = {
+              path: 'user/' + this.minScore.userId,
+              append: true
+            }
+            this.minScoreStr = this.minScore.name + '(' + this.minScore.score + '分)'
+          }
+        })
+      }
+    },
+    data() {
+      return dataSet
     }
   }
 </script>
