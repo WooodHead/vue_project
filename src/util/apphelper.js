@@ -122,7 +122,10 @@ AppHelper.alert = obj => {
   myAlert.showMsg(obj)
 }
 const cndJs = {
-  echarts: 'http://cdn.bootcss.com/echarts/3.2.2/echarts.min.js'
+  echarts: 'http://cdn.bootcss.com/echarts/3.2.2/echarts.min.js',
+  jquery: '//cdn.bootcss.com/jquery/3.1.1/jquery.min.js',
+  amazeui: '//cdn.bootcss.com/amazeui/2.7.2/js/amazeui.min.js',
+  amazeui_css: '//cdn.bootcss.com/amazeui/2.7.2/css/amazeui.css'
 }
 AppHelper.ApiUrls = {
   exams_test: 'Business/Score/Exams.aspx/Test', // 测试地址
@@ -130,9 +133,21 @@ AppHelper.ApiUrls = {
   exams_detail: 'api/exam.aspx/Exams',  // 教师加载某次考试
   exams_student: 'api/exam.aspx/StudentExam'  // 加载学生某次考试信息
 }
+var isArray = function(obj) {
+  return Object.prototype.toString.call(obj) === '[object Array]'
+}
 const $script = require('scriptjs')
 AppHelper.script = (name, fn) => {
-  $script(cndJs[name], name, fn)
+  if (isArray(name)) {
+    var arrList = []
+    for (var i in name) {
+      arrList.push(cndJs[name[i]])
+    }
+    $script(arrList, 'bundle')
+    $script.ready('bundle', fn)
+  } else {
+    $script(cndJs[name], name, fn)
+  }
 }
 AppHelper.post = (url, jsonData) => {
   // 传递用户ID等数据

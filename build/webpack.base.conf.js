@@ -21,7 +21,7 @@ module.exports = {
       'assets': path.resolve(__dirname, '../src/assets'),
       'util': path.resolve(__dirname, '../src/util'),
       'components': path.resolve(__dirname, '../src/components'),
-      'vux-src': 'vux/src/components/'
+      'vux-src': 'vux/src/components'
     }
   },
   externals: {
@@ -59,6 +59,9 @@ module.exports = {
       }, {
         test: /\.html$/,
         loader: 'vue-html'
+      }, {
+        test: /\.css$/,
+        loaders: 'style!css',
       }, {
         test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
         loader: 'url',

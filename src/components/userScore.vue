@@ -15,26 +15,29 @@
       </flexbox>
     </div>
   </group>
-  <group title="成绩分析图">
-      <div id="mainChart" style="margin-bottom:20px;width:100%;height:350px;padding:0 10px 10px 10px"></div>
+  <group title="成绩分析图" v-show="subjects&&subjects.length>0">
+    <div id="mainChart" style="margin-bottom:20px;height:350px;padding:0 10px 10px 10px"></div>
+  </group>
+  <group title="教师评语" v-show="comments&&comments.length>0">
+    <panel :list="comments" :type="type"></panel>
   </group>
 </template>
 <script>
-  import Group from 'vux-src/group'
-  import Cell from 'vux-src/cell'
-  import Flexbox from 'vux-src/flexbox'
-  import FlexboxItem from 'vux-src/flexbox-item'
+  import { Panel, Group, Cell, Flexbox, FlexboxItem } from 'vux-src'
   import AppHelper from 'util/apphelper'
 
   export default {
     components: {
       Group,
+      Panel,
       Cell,
       Flexbox,
       FlexboxItem
     },
     data() {
-      return {}
+      return {
+        type: '2'
+      }
     },
     created() {
       AppHelper.script('echarts', () => {
@@ -42,6 +45,7 @@
         const nodeDom = document.getElementById('mainChart')
         if (nodeDom) {
           nodeDom.innerHTML = ''
+          nodeDom.style.width = window.innerWidth + 'px'
           this.loadData(window.echarts.init(nodeDom))
         }
       })
@@ -52,8 +56,10 @@
           studentId: AppHelper.getParams('studentId'),
           examId: AppHelper.getParams('examId')
         }
+        var objData = this.$data
         AppHelper.post(AppHelper.ApiUrls.exams_student, cfg).then((jsonData) => {
-          this.$data = jsonData.data
+          objData = Object.assign({}, objData, jsonData.data)
+          this.$data = objData
           if (!this.subjects || this.subjects.length < 4) {
             return
           }
@@ -106,6 +112,7 @@
       }
     }
   }
+
 </script>
 <style>
   .flex-tab-head {
@@ -125,4 +132,6 @@
     -webkit-transform: scaleY(0.5);
     transform: scaleY(0.5);
   }
+
+
 </style>
