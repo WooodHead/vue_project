@@ -4,7 +4,7 @@ const AppHelper = {}
 const Vue = require('vue')
 const VueResource = require('vue-resource')
 Vue.use(VueResource)
-Vue.http.options.root = 'http://jyapp.cn'
+// Vue.http.options.root = 'http://jyapp.cn'
 
 let myToast = null
 AppHelper.showMsg = obj => {
@@ -94,8 +94,10 @@ AppHelper.alert = obj => {
         return {
           title: '',
           show: false,
-          onshow() { },
-          onhide() { },
+          onshow() {
+          },
+          onhide() {
+          },
           msg: '',
           buttonText: '确定'
         }
@@ -122,18 +124,25 @@ AppHelper.alert = obj => {
   myAlert.showMsg(obj)
 }
 const cndJs = {
-  echarts: 'http://cdn.bootcss.com/echarts/3.2.2/echarts.min.js',
+  echarts: '//cdn.bootcss.com/echarts/3.2.2/echarts.min.js',
   jquery: '//cdn.bootcss.com/jquery/3.1.1/jquery.min.js',
   amazeui: '//cdn.bootcss.com/amazeui/2.7.2/js/amazeui.min.js',
   amazeui_css: '//cdn.bootcss.com/amazeui/2.7.2/css/amazeui.css'
 }
-AppHelper.ApiUrls = {
-  exams_test: 'Business/Score/Exams.aspx/Test', // 测试地址
-  exams_index: 'api/exam.aspx/Index', // 加载首页数据
-  exams_detail: 'api/exam.aspx/Exams',  // 教师加载某次考试
-  exams_student: 'api/exam.aspx/StudentExam'  // 加载学生某次考试信息
+AppHelper.WebRoot = 'http://jyapp.cn/api/'
+var ApiUrls = {
+  exams_index: AppHelper.WebRoot + 'exam.aspx/Index', // 加载首页数据
+  exams_detail: AppHelper.WebRoot + 'exam.aspx/Exams',  // 教师加载某次考试
+  exams_student: AppHelper.WebRoot + 'exam.aspx/StudentExam'  // 加载学生某次考试信息
 }
-var isArray = function(obj) {
+AppHelper.WebApiRoot = 'http://jyapp.cn:30011/api/'
+ApiUrls.rating_post = AppHelper.WebApiRoot + 'ComRating/PostRating' // 提交评价
+ApiUrls.rating_index = AppHelper.WebApiRoot + 'ComRating/GetComRating' // 加载首页数据
+ApiUrls.rating_detail = AppHelper.WebApiRoot + 'ComRating/GetRatingClassDetail' // 教师加载某次评价
+ApiUrls.rating_student = AppHelper.WebApiRoot + 'ComRating/GetRatingStudentDetail'  // 加载学生某次评价
+AppHelper.ApiUrls = ApiUrls
+
+var isArray = function (obj) {
   return Object.prototype.toString.call(obj) === '[object Array]'
 }
 const $script = require('scriptjs')
@@ -152,28 +161,23 @@ AppHelper.script = (name, fn) => {
 AppHelper.post = (url, jsonData) => {
   // 传递用户ID等数据
   jsonData = Object.assign({}, AppHelper.getLocalUser(), jsonData)
-  // console.log(jsonData)
+  console.log('post====>', url)
   // return Promise
+  AppHelper.loading(true)
+
   return Vue.http.post(url, jsonData || {}, {
     timeout: 30000, // 30s超时
-    before: () => {
-      // before post
-      AppHelper.loading(true)
-    },
     emulateJSON: false
   }).then((response) => {
     // success callback
     AppHelper.loading(false)
-
     const resData = JSON.parse(response.json().d)
-    // console.log(resData)
     if (resData && !resData.data) {
       return Promise.resolve({
         code: 200,
         data: resData
       })
     }
-
     if (resData && resData.code === 200) {
       return Promise.resolve(resData)
     } else {
@@ -181,12 +185,43 @@ AppHelper.post = (url, jsonData) => {
       if (!errorStr) {
         errorStr = '出错了,网络异常(' + resData.code + ')!'
       }
-      AppHelper.showMsg({ type: 'text', width: '12em', msg: errorStr })
+      AppHelper.showMsg({type: 'text', width: '12em', msg: errorStr})
       return Promise.reject(resData)
     }
   }).catch((response) => { // error callback
     AppHelper.loading(false)
-    AppHelper.showMsg({ type: 'text', width: '12em', msg: '出错了,网络异常(' + response.status + ')!' })
+    AppHelper.showMsg({type: 'text', width: '12em', msg: '出错了,网络异常(' + response.status + ')!'})
+    return Promise.reject(response)
+  })
+}
+AppHelper.post2 = (url, jsonData) => {
+  // 传递用户ID等数据
+  jsonData = Object.assign({}, AppHelper.getLocalUser(), jsonData)
+
+  AppHelper.loading(true)
+
+  return Vue.http.post(url, jsonData || {}, {
+    timeout: 30000, // 30s超时
+    emulateJSON: true
+  }).then((response) => {
+    // success callback
+    AppHelper.loading(false)
+    const resData = response.json()
+    // console.log('response====>', resData)
+    if (resData && resData.State === true) {
+      return Promise.resolve({
+        code: 200,
+        data: resData.ResultContent
+      })
+    }
+    return Promise.reject(resData)
+  }).catch((response) => { // error callback
+    AppHelper.loading(false)
+    let errorStr = response.Message
+    if (!errorStr) {
+      errorStr = '出错了,网络异常!'
+    }
+    AppHelper.showMsg({type: 'text', width: '12em', msg: errorStr})
     return Promise.reject(response)
   })
 }
@@ -229,8 +264,28 @@ AppHelper.getLocalUser = () => {
 }
 AppHelper.getQueryString = (name, defStr) => {
   if (name && name.length > 0) {
+    let aliasName = name
+    switch (name) {
+      case 'userId':
+        aliasName = 'uid'
+        break
+      case 'classId':
+        aliasName = 'cid'
+        break
+      case 'studentId':
+        aliasName = 'sid'
+        break
+    }
+    // 优先查找URL参数
+    let str = AppHelper.getParams(aliasName)
+    if (str && str.length > 0) {
+      // 查找URL参数
+      LocalUser[name] = str
+      LocalStore.set(name, str)
+      return str
+    }
     // 查找页面对象
-    let str = LocalUser[name]
+    str = LocalUser[name]
     if (str && str.length > 0) {
       return str
     } else {
@@ -239,26 +294,6 @@ AppHelper.getQueryString = (name, defStr) => {
       if (str && str.length > 0) {
         LocalUser[name] = str
         return str
-      } else {
-        let aliasName = name
-        switch (name) {
-          case 'userId':
-            aliasName = 'uid'
-            break
-          case 'classId':
-            aliasName = 'cid'
-            break
-          case 'studentId':
-            aliasName = 'sid'
-            break
-        }
-        if (AppHelper.getParams(aliasName)) {
-          // 查找URL参数
-          str = AppHelper.getParams(aliasName)
-          LocalUser[name] = str
-          LocalStore.set(name, str)
-          return str
-        }
       }
     }
   }
@@ -308,5 +343,9 @@ AppHelper.getStudentId = () => {
 AppHelper.setStudentId = (studentId) => {
   LocalUser['studentId'] = studentId
   LocalStore.set('studentId', studentId)
+}
+AppHelper.setUserType = (userType) => {
+  LocalUser['userType'] = userType
+  LocalStore.set('userType', userType)
 }
 export default AppHelper

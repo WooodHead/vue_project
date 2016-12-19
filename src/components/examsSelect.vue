@@ -1,16 +1,21 @@
 <template>
   <group title="筛选条件">
-    <popup-picker v-if="userType===1" title="已选择班级" :data="classList" :columns="(classList && classList.length>0)?1:0" :value.sync="selectClass" show-name></popup-picker>
-    <popup-picker v-else title="已选择学生" :data="studentList" :columns="(studentList && studentList.length>0)?1:0" :value.sync="selectClass" show-name></popup-picker>
-    <popup-picker title="已选择学年" :data="yearsList" :columns="(yearsList && yearsList.length>0)?1:0" :value.sync="selectYear" show-name></popup-picker>
+    <popup-picker v-if="userType===1" title="已选择班级" :data="classList" :columns="(classList && classList.length>0)?1:0"
+                  :value.sync="selectClass" show-name></popup-picker>
+    <popup-picker v-else title="已选择学生" :data="studentList" :columns="(studentList && studentList.length>0)?1:0"
+                  :value.sync="selectClass" show-name></popup-picker>
+    <popup-picker title="已选择学年" :data="yearsList" :columns="(yearsList && yearsList.length>0)?1:0"
+                  :value.sync="selectYear" show-name></popup-picker>
   </group>
   <group title="考试列表" v-if="userType===1">
     <nodata v-show="!exams"></nodata>
-    <cell v-for="item in exams" :title="item.name" :inline-desc="item.gradeName" :value="item.time" :link="'/exams/'+item.id"></cell>
+    <cell v-for="item in exams" :title="item.name" :inline-desc="item.gradeName" :value="item.time"
+          :link="'/exams/'+item.id"></cell>
   </group>
   <group title="考试列表" v-else>
     <nodata v-show="!exams"></nodata>
-    <cell v-for="item in exams" :title="item.name" :inline-desc="item.gradeName" :value="item.time" :link="'/exams/'+item.id + '/user/'+selectClass[0]"></cell>
+    <cell v-for="item in exams" :title="item.name" :inline-desc="item.gradeName" :value="item.time"
+          :link="'/exams/'+item.id + '/user/'+selectClass[0]"></cell>
   </group>
 </template>
 <script>
@@ -24,8 +29,11 @@
   let mExamsLoadType = 0
   let mExamsYear = ''
   let dataSet = {
+    yearsList: [],
     selectYear: [],
-    selectClass: []
+    selectClass: [],
+    classList: [],
+    studentList: []
   }
   const examsSelect = {
     components: {
@@ -37,10 +45,9 @@
       return dataSet
     },
     created() {
-      this.userType = AppHelper.getUserType()
-      if (mExamsLoadType === 0) {
-        this.loadData(1)
-      }
+      // if (mExamsLoadType === 0) {
+      this.loadData(1)
+      // }
     },
     watch: {
       selectClass(val, oldVal) {
@@ -75,6 +82,12 @@
     },
     methods: {
       loadData(type) {
+        if (this.userType !== AppHelper.getUserType()) {
+          this.userType = AppHelper.getUserType()
+          this.selectClass = []
+          this.classList = []
+          this.studentList = []
+        }
         mExamsLoadType = type
         switch (mExamsLoadType) {
           case 1: // 第一次加载
@@ -97,25 +110,27 @@
         AppHelper.post(AppHelper.ApiUrls.exams_index, cfg).then((jsonData) => {
           dataSet = Object.assign({}, dataSet, jsonData.data)
           this.$data = dataSet
-          this.userType = AppHelper.getUserType()
-
           if (this.selectYear.length < 1 && this.yearsList.length > 0) {
             mExamsYear = this.yearsList[0].value
             this.selectYear = [mExamsYear]
           }
           if (this.userType === 1) {
-            if (this.selectClass.length < 1 && this.classList.length > 0) {
+            if (this.classList.length > 0) {
               if (AppHelper.getClassId().length < 1) {
                 AppHelper.setClassId(this.classList[0].value)
               }
-              this.selectClass = [AppHelper.getClassId()]
+              if (this.selectClass.length < 1) {
+                this.selectClass = [AppHelper.getClassId()]
+              }
             }
           } else if (this.userType === 2) {
-            if (this.selectClass.length < 1 && this.studentList.length > 0) {
+            if (this.studentList.length > 0) {
               if (AppHelper.getStudentId().length < 1) {
                 AppHelper.setStudentId(this.studentList[0].value)
               }
-              this.selectClass = [AppHelper.getStudentId()]
+              if (this.selectClass.length < 1) {
+                this.selectClass = [AppHelper.getStudentId()]
+              }
             }
           }
         })
