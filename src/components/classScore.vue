@@ -15,6 +15,7 @@
   import PopupPicker from 'vux-src/popup-picker'
   import Cell from 'vux-src/cell'
   import AppHelper from 'util/apphelper'
+  const pagePrefix = 'Exams'
 
   // 全局变量,重定向后可保存页面数据
   let mLoadType = 0
@@ -59,7 +60,7 @@
           loadType: mLoadType,
           courseId: mCourseId
         }
-        AppHelper.post(AppHelper.ApiUrls.exams_detail, cfg).then((jsonData) => {
+        AppHelper.post(AppHelper.ApiUrls.exams_detail, cfg, pagePrefix).then((jsonData) => {
           delete dataSet.avgScore
           delete dataSet.maxScore
           delete dataSet.minScore

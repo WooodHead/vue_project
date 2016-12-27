@@ -6,7 +6,7 @@ const projectRoot = path.resolve(__dirname, '../')
 module.exports = {
   entry: {
     app: './src/main.js',
-    vendor: ['lodash', 'scriptjs', 'vue', 'vue-router', 'vue-resource', 'vux'] // 第三方库打包入vendor.js
+    vendor: ['lodash', 'scriptjs', 'vue', 'vue-router', 'vue-resource', 'vux', 'util/apphelper', 'vux-src/group', 'vux-src/cell', 'vux-src/cell', 'vux-src/card', 'vux-src/popup-picker'] // 第三方库打包入vendor.js
   },
   output: {
     path: config.build.assetsRoot,

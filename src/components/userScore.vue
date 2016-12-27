@@ -15,7 +15,7 @@
       </flexbox>
     </div>
   </group>
-  <group title="成绩分析图" v-show="subjects&&subjects.length>0">
+  <group title="成绩分析图" v-show="indicators&&indicators.length>3">
     <div id="mainChart" style="margin-bottom:20px;height:350px;padding:0 10px 10px 10px"></div>
   </group>
   <group title="教师评语" v-show="comments&&comments.length>0">
@@ -23,8 +23,12 @@
   </group>
 </template>
 <script>
-  import { Panel, Group, Cell, Flexbox, FlexboxItem } from 'vux-src'
+  import Panel from 'vux-src/panel'
+  import Group from 'vux-src/group'
+  import Cell from 'vux-src/cell'
+  import { Flexbox, FlexboxItem } from 'vux-src/flexbox'
   import AppHelper from 'util/apphelper'
+  const pagePrefix = 'Exams'
 
   export default {
     components: {
@@ -36,7 +40,8 @@
     },
     data() {
       return {
-        type: '2'
+        type: '2',
+        indicators: []
       }
     },
     created() {
@@ -57,20 +62,20 @@
           examId: AppHelper.getParams('examId')
         }
         var objData = this.$data
-        AppHelper.post(AppHelper.ApiUrls.exams_student, cfg).then((jsonData) => {
+        this.indicators = []
+        AppHelper.post(AppHelper.ApiUrls.exams_student, cfg, pagePrefix).then((jsonData) => {
           objData = Object.assign({}, objData, jsonData.data)
           this.$data = objData
           if (!this.subjects || this.subjects.length < 4) {
             return
           }
-          const indicators = []
           const userScores = []
           const avgScores = []
           const len = this.subjects.length
           for (let i = 0; i < len; i++) {
             const one = this.subjects[i]
             if (one.isShowChart === true) {
-              indicators.push({
+              this.indicators.push({
                 name: one.subName,
                 max: one.maxValue
               })
@@ -79,7 +84,7 @@
             }
           }
           // 数据太少不用绘图
-          if (indicators.length < 4) {
+          if (this.indicators.length < 4) {
             return
           }
           // 绘制图表
@@ -94,7 +99,7 @@
             },
             radar: {
               // shape: 'circle',
-              indicator: indicators
+              indicator: this.indicators
             },
             series: [{
               type: 'radar',
@@ -132,6 +137,5 @@
     -webkit-transform: scaleY(0.5);
     transform: scaleY(0.5);
   }
-
 
 </style>

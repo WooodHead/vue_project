@@ -158,13 +158,11 @@ AppHelper.script = (name, fn) => {
     $script(cndJs[name], name, fn)
   }
 }
-AppHelper.post = (url, jsonData) => {
+AppHelper.post = (url, jsonData, prefix) => {
   // 传递用户ID等数据
-  jsonData = Object.assign({}, AppHelper.getLocalUser(), jsonData)
-  console.log('post====>', url)
-  // return Promise
+  jsonData = Object.assign({}, AppHelper.getLocalUser(prefix), jsonData)
+  // console.log('post====>', url)
   AppHelper.loading(true)
-
   return Vue.http.post(url, jsonData || {}, {
     timeout: 30000, // 30s超时
     emulateJSON: false
@@ -194,12 +192,10 @@ AppHelper.post = (url, jsonData) => {
     return Promise.reject(response)
   })
 }
-AppHelper.post2 = (url, jsonData) => {
+AppHelper.post2 = (url, jsonData, prefix) => {
   // 传递用户ID等数据
-  jsonData = Object.assign({}, AppHelper.getLocalUser(), jsonData)
-
+  jsonData = Object.assign({}, AppHelper.getLocalUser(prefix), jsonData)
   AppHelper.loading(true)
-
   return Vue.http.post(url, jsonData || {}, {
     timeout: 30000, // 30s超时
     emulateJSON: true
@@ -228,20 +224,12 @@ AppHelper.post2 = (url, jsonData) => {
 let mUserType = 0 // 1教师 2家长
 // 返回用户类型
 AppHelper.getUserType = () => {
-  // const Vue = require('vue')
-  // console.log(Vue.getRoute().query)
   let typeInt = 0
   if (mUserType === 0) {
     typeInt = LocalStore.get('userType')
     if (typeInt) {
       mUserType = parseInt(typeInt)
-    } else if (AppHelper.getParams('userType')) {
-      mUserType = parseInt(AppHelper.getParams('userType'))
-      LocalStore.set('userType', mUserType)
     }
-  }
-  if (mUserType === 0) {
-    return 2
   }
   if (AppHelper.getParams('userType')) {
     typeInt = parseInt(AppHelper.getParams('userType'))
@@ -249,26 +237,41 @@ AppHelper.getUserType = () => {
       LocalStore.clear()
       LocalUser = {}
       mUserType = typeInt
+      AppHelper.setUserType(mUserType)
     }
+  }
+  if (mUserType === 0) {
+    return 2
   }
   return mUserType
 }
 let LocalUser = {}
-AppHelper.getLocalUser = () => {
+AppHelper.getLocalUser = (prefix) => {
   // LocalStore.clear()
-  LocalUser.userType = AppHelper.getUserType()
   LocalUser.userId = AppHelper.getUserId()
-  LocalUser.classId = AppHelper.getClassId()
-  LocalUser.studentId = AppHelper.getStudentId()
+  LocalUser.userType = AppHelper.getUserType()
+  LocalUser.classId = AppHelper.getClassId(prefix)
+  LocalUser.studentId = AppHelper.getStudentId(prefix)
   return LocalUser
 }
-AppHelper.getQueryString = (name, defStr) => {
+AppHelper.getQueryString = (name, defStr, prefix) => {
   if (name && name.length > 0) {
+    let newName = name
+    if (prefix) {
+      newName = prefix + '_' + newName
+    }
+    // 优先查找本地存储
+    let str = LocalStore.get(newName)
+    // console.log('getQueryString====>', newName, '=', str)
+    if (str && str.length > 0) {
+      LocalUser[name] = str
+      return str
+    }
     let aliasName = name
     switch (name) {
-      case 'userId':
-        aliasName = 'uid'
-        break
+      // case 'userId':
+      //   aliasName = 'uid'
+      //   break
       case 'classId':
         aliasName = 'cid'
         break
@@ -276,25 +279,11 @@ AppHelper.getQueryString = (name, defStr) => {
         aliasName = 'sid'
         break
     }
-    // 优先查找URL参数
-    let str = AppHelper.getParams(aliasName)
+    // 查找URL参数
+    str = AppHelper.getParams(aliasName)
     if (str && str.length > 0) {
-      // 查找URL参数
-      LocalUser[name] = str
-      LocalStore.set(name, str)
+      AppHelper.setStore(name, str, prefix)
       return str
-    }
-    // 查找页面对象
-    str = LocalUser[name]
-    if (str && str.length > 0) {
-      return str
-    } else {
-      // 查找本地存储
-      let str = LocalStore.get(name)
-      if (str && str.length > 0) {
-        LocalUser[name] = str
-        return str
-      }
     }
   }
   return defStr
@@ -314,9 +303,14 @@ AppHelper.getParams = (name, defStr) => {
 }
 // 用户ID
 AppHelper.getUserId = () => {
-  const storeUid = AppHelper.getQueryString('userId', '')
+  // 本地存储
+  const storeUid = LocalStore.get('userId')
+  // console.log('storeUid====>', storeUid)
+  // 页面传值
   const pageUid = AppHelper.getParams('uid', '')
-  if (storeUid && pageUid && storeUid.length > 0 && pageUid.length > 0 && storeUid !== pageUid) {
+  // console.log('pageUid====>', pageUid)
+  if (pageUid && pageUid.length > 0 && storeUid !== pageUid) {
+    // 用户发生了变化,清空本地缓存
     LocalStore.clear()
     LocalUser = {}
     AppHelper.setUserId(pageUid)
@@ -324,28 +318,33 @@ AppHelper.getUserId = () => {
   }
   return storeUid
 }
-AppHelper.setUserId = (userId) => {
-  LocalUser['userId'] = userId
-  LocalStore.set('userId', userId)
+AppHelper.setStore = (name, value, prefix) => {
+  let aliasName = name
+  if (prefix) {
+    aliasName = prefix + '_' + name
+  }
+  LocalUser[name] = value
+  LocalStore.set(aliasName, value)
+  // console.log('setStore====>', aliasName, '=', value)
+}
+AppHelper.setUserId = (value) => {
+  AppHelper.setStore('userId', value)
 }
 // 班级ID
-AppHelper.getClassId = () => {
-  return AppHelper.getQueryString('classId', '')
+AppHelper.getClassId = (prefix) => {
+  return AppHelper.getQueryString('classId', '', prefix)
 }
-AppHelper.setClassId = (classId) => {
-  LocalUser['classId'] = classId
-  LocalStore.set('classId', classId)
+AppHelper.setClassId = (value, prefix) => {
+  AppHelper.setStore('classId', value, prefix)
 }
 // 学生ID
-AppHelper.getStudentId = () => {
-  return AppHelper.getQueryString('studentId', '')
+AppHelper.getStudentId = (prefix) => {
+  return AppHelper.getQueryString('studentId', '', prefix)
 }
-AppHelper.setStudentId = (studentId) => {
-  LocalUser['studentId'] = studentId
-  LocalStore.set('studentId', studentId)
+AppHelper.setStudentId = (value, prefix) => {
+  AppHelper.setStore('studentId', value, prefix)
 }
-AppHelper.setUserType = (userType) => {
-  LocalUser['userType'] = userType
-  LocalStore.set('userType', userType)
+AppHelper.setUserType = (value) => {
+  AppHelper.setStore('userType', value)
 }
 export default AppHelper

@@ -9,7 +9,6 @@ Vue.component('nodata', require('components/NoData'))
 const router = new VueRouter()
 RouteLoad(router)
 router.start(App, '#app')
-
 AppHelper.getRoute = () => {
   return router._currentRoute
 }

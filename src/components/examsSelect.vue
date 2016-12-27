@@ -23,6 +23,8 @@
   import PopupPicker from 'vux-src/popup-picker'
   import Cell from 'vux-src/cell'
   import AppHelper from 'util/apphelper'
+  const _ = require('lodash')
+  const pagePrefix = 'Exams'
 
   // 全局变量,注意不要与其他页面重名
   // 重定向后可保存页面数据
@@ -58,11 +60,11 @@
           // 选择班级结束
           if (this.userType === 1) {
             // 切换班级
-            AppHelper.setClassId(val[0])
+            AppHelper.setClassId(val[0], pagePrefix)
             this.loadData(2)
           } else if (this.userType === 2) {
             // 切换学生
-            AppHelper.setStudentId(val[0])
+            AppHelper.setStudentId(val[0], pagePrefix)
             this.loadData(2)
           }
         }
@@ -87,6 +89,7 @@
           this.selectClass = []
           this.classList = []
           this.studentList = []
+          delete dataSet.exams
         }
         mExamsLoadType = type
         switch (mExamsLoadType) {
@@ -107,7 +110,7 @@
           loadType: mExamsLoadType,
           examsYear: mExamsYear
         }
-        AppHelper.post(AppHelper.ApiUrls.exams_index, cfg).then((jsonData) => {
+        AppHelper.post(AppHelper.ApiUrls.exams_index, cfg, pagePrefix).then((jsonData) => {
           dataSet = Object.assign({}, dataSet, jsonData.data)
           this.$data = dataSet
           if (this.selectYear.length < 1 && this.yearsList.length > 0) {
@@ -116,20 +119,20 @@
           }
           if (this.userType === 1) {
             if (this.classList.length > 0) {
-              if (AppHelper.getClassId().length < 1) {
-                AppHelper.setClassId(this.classList[0].value)
+              if (AppHelper.getClassId(pagePrefix).length < 1 || !_.some(this.classList, {value: AppHelper.getClassId(pagePrefix)})) {
+                AppHelper.setClassId(this.classList[0].value, pagePrefix)
               }
               if (this.selectClass.length < 1) {
-                this.selectClass = [AppHelper.getClassId()]
+                this.selectClass = [AppHelper.getClassId(pagePrefix)]
               }
             }
           } else if (this.userType === 2) {
             if (this.studentList.length > 0) {
-              if (AppHelper.getStudentId().length < 1) {
-                AppHelper.setStudentId(this.studentList[0].value)
+              if (AppHelper.getStudentId(pagePrefix).length < 1 || !_.some(this.studentList, {value: AppHelper.getStudentId(pagePrefix)})) {
+                AppHelper.setStudentId(this.studentList[0].value, pagePrefix)
               }
               if (this.selectClass.length < 1) {
-                this.selectClass = [AppHelper.getStudentId()]
+                this.selectClass = [AppHelper.getStudentId(pagePrefix)]
               }
             }
           }
