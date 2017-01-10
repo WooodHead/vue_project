@@ -1,9 +1,9 @@
 <template>
   <group title="筛选条件">
-    <popup-picker v-if="classList && classList.length>0" title="已选择班级" :data="classList"
+    <popup-picker v-if="this.userType==1 && classList && classList.length>0" title="已选择班级" :data="classList"
                   :columns="(classList && classList.length>0)?1:0"
                   :value.sync="selectClass" show-name></popup-picker>
-    <popup-picker v-else title="已选择学生" :data="studentList" :columns="(studentList && studentList.length>0)?1:0"
+    <popup-picker v-if="this.userType==2 && studentList && studentList.length>0" title="已选择学生" :data="studentList" :columns="(studentList && studentList.length>0)?1:0"
                   :value.sync="selectClass" show-name></popup-picker>
     <popup-picker title="已选择学年" :data="yearsList" :columns="(yearsList && yearsList.length>0)?1:0"
                   :value.sync="selectYear" show-name></popup-picker>

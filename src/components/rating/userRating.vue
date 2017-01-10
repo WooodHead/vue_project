@@ -47,9 +47,6 @@
   <confirm :show.sync="isAskShow" confirm-text="确定" cancel-text="取消" title="您确定要提交评价?" @on-confirm="postRating">
   </confirm>
   <style>
-    .weui_btn_dialog.primary {
-        color: #3385ff;
-    }
     .weui_cells {
       margin-top: .1em;
       font-size: 14px;

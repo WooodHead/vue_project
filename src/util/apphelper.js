@@ -133,9 +133,10 @@ AppHelper.WebRoot = 'http://jyapp.cn/api/'
 var ApiUrls = {
   exams_index: AppHelper.WebRoot + 'exam.aspx/Index', // 加载首页数据
   exams_detail: AppHelper.WebRoot + 'exam.aspx/Exams',  // 教师加载某次考试
-  exams_student: AppHelper.WebRoot + 'exam.aspx/StudentExam'  // 加载学生某次考试信息
+  exams_student: AppHelper.WebRoot + 'exam.aspx/StudentExam',  // 加载学生某次考试信息
+  exams_postcomment: AppHelper.WebRoot + 'exam.aspx/SaveComment'  // 家长填写评价
 }
-AppHelper.WebApiRoot = 'http://jyapp.cn:30011/api/'
+AppHelper.WebApiRoot = 'http://jyapp.cn:30005/api/'
 ApiUrls.rating_post = AppHelper.WebApiRoot + 'ComRating/PostRating' // 提交评价
 ApiUrls.rating_index = AppHelper.WebApiRoot + 'ComRating/GetComRating' // 加载首页数据
 ApiUrls.rating_detail = AppHelper.WebApiRoot + 'ComRating/GetRatingClassDetail' // 教师加载某次评价
@@ -168,8 +169,11 @@ AppHelper.post = (url, jsonData, prefix) => {
     emulateJSON: false
   }).then((response) => {
     // success callback
+
     AppHelper.loading(false)
     const resData = JSON.parse(response.json().d)
+    console.log(resData)
+
     if (resData && !resData.data) {
       return Promise.resolve({
         code: 200,
