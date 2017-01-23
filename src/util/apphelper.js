@@ -172,7 +172,7 @@ AppHelper.post = (url, jsonData, prefix) => {
 
     AppHelper.loading(false)
     const resData = JSON.parse(response.json().d)
-    console.log(resData)
+    // console.log(resData)
 
     if (resData && !resData.data) {
       return Promise.resolve({

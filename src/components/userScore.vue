@@ -45,6 +45,11 @@
            title="注意,评价提交后不可更改!" @on-confirm="submitData">
     <p style="text-align:center;">您确定要提交?</p>
   </confirm>
+  <style>
+  .weui_media_box .weui_media_desc {
+      -webkit-line-clamp: 100;
+  }
+  </style>
 </template>
 <script>
   import XTextarea from 'vux-src/x-textarea'
@@ -145,7 +150,7 @@
           parentComment: this.parentComment
         }
         AppHelper.post(AppHelper.ApiUrls.exams_postcomment, option, pagePrefix).then((jsonData) => {
-          console.log('exams_postcomment', jsonData)
+          // console.log('exams_postcomment', jsonData)
           this.studentComment = ''
           this.parentComment = ''
           this.isCanComment = false
@@ -240,11 +245,9 @@
   .flex-tab-head {
     background-color: #fbf9fe;
   }
-
   .flex-tab {
     padding-left: 15px;
   }
-
   .hr_line {
     width: 100%;
     height: 1px;
