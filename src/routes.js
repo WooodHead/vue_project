@@ -45,6 +45,28 @@ export default function (router) {
       component: (resolve) => {
         require(['components/rating/userRating'], resolve)
       }
+    },
+    '/platform': {
+      title: '创新展台',
+      component: (resolve) => {
+        require(['components/platform/list'], resolve)
+      }
+    },
+    '/platform/:masterId': {
+      component: (resolve) => {
+        require(['components/platform/detail'], resolve)
+      }
+    },
+    '/homeVisit': {
+      title: '家庭访问',
+      component: (resolve) => {
+        require(['components/platform/homeVisitList'], resolve)
+      }
+    },
+    '/homeVisit/:fromId': {
+      component: (resolve) => {
+        require(['components/platform/homeVisitDetail'], resolve)
+      }
     }
   })
   // 默认找不到页面,全部重定向到首页

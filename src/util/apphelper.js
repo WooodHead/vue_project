@@ -136,11 +136,17 @@ var ApiUrls = {
   exams_student: AppHelper.WebRoot + 'exam.aspx/StudentExam',  // 加载学生某次考试信息
   exams_postcomment: AppHelper.WebRoot + 'exam.aspx/SaveComment'  // 家长填写评价
 }
-AppHelper.WebApiRoot = 'http://jyapp.cn:30005/api/'
+AppHelper.WebApiRoot = 'http://jyapp.cn:30011/api/'
 ApiUrls.rating_post = AppHelper.WebApiRoot + 'ComRating/PostRating' // 提交评价
 ApiUrls.rating_index = AppHelper.WebApiRoot + 'ComRating/GetComRating' // 加载首页数据
 ApiUrls.rating_detail = AppHelper.WebApiRoot + 'ComRating/GetRatingClassDetail' // 教师加载某次评价
 ApiUrls.rating_student = AppHelper.WebApiRoot + 'ComRating/GetRatingStudentDetail'  // 加载学生某次评价
+ApiUrls.platform_list = AppHelper.WebApiRoot + 'ComRating/GetComRatingForTeacher' // 创新展台列表
+ApiUrls.platform_detail = AppHelper.WebApiRoot + 'ComRating/GetRatingDetail' // 创新展台详细
+ApiUrls.homeVisit_list = AppHelper.WebApiRoot + 'WorkFlow/GetFormList' // 家访列表
+ApiUrls.homeVisit_detail = AppHelper.WebApiRoot + 'WorkFlow/GetFormDetail' // 家访详细
+ApiUrls.homeVisit_post = AppHelper.WebApiRoot + 'WorkFlow/Save' // 家访提交
+
 AppHelper.ApiUrls = ApiUrls
 
 var isArray = function (obj) {
@@ -238,8 +244,9 @@ AppHelper.getUserType = () => {
   if (AppHelper.getParams('userType')) {
     typeInt = parseInt(AppHelper.getParams('userType'))
     if (mUserType !== typeInt) {
-      LocalStore.clear()
-      LocalUser = {}
+      if (mUserType > 0) {
+        LocalStore.clear()
+      }
       mUserType = typeInt
       AppHelper.setUserType(mUserType)
     }
@@ -249,11 +256,10 @@ AppHelper.getUserType = () => {
   }
   return mUserType
 }
-let LocalUser = {}
 AppHelper.getLocalUser = (prefix) => {
-  // LocalStore.clear()
-  LocalUser.userId = AppHelper.getUserId()
+  let LocalUser = {}
   LocalUser.userType = AppHelper.getUserType()
+  LocalUser.userId = AppHelper.getUserId()
   LocalUser.classId = AppHelper.getClassId(prefix)
   LocalUser.studentId = AppHelper.getStudentId(prefix)
   return LocalUser
@@ -268,7 +274,6 @@ AppHelper.getQueryString = (name, defStr, prefix) => {
     let str = LocalStore.get(newName)
     // console.log('getQueryString====>', newName, '=', str)
     if (str && str.length > 0) {
-      LocalUser[name] = str
       return str
     }
     let aliasName = name
@@ -315,19 +320,20 @@ AppHelper.getUserId = () => {
   // console.log('pageUid====>', pageUid)
   if (pageUid && pageUid.length > 0 && storeUid !== pageUid) {
     // 用户发生了变化,清空本地缓存
-    LocalStore.clear()
-    LocalUser = {}
+    if (storeUid) {
+      LocalStore.clear()
+    }
     AppHelper.setUserId(pageUid)
     return pageUid
   }
   return storeUid
 }
 AppHelper.setStore = (name, value, prefix) => {
+  // console.log('name====>', name)
   let aliasName = name
   if (prefix) {
     aliasName = prefix + '_' + name
   }
-  LocalUser[name] = value
   LocalStore.set(aliasName, value)
   // console.log('setStore====>', aliasName, '=', value)
 }
