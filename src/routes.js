@@ -67,6 +67,28 @@ export default function (router) {
       component: (resolve) => {
         require(['components/platform/homeVisitDetail'], resolve)
       }
+    },
+    '/repair': {
+      title: '后勤报修',
+      component: (resolve) => {
+        require(['components/platform/repairList'], resolve)
+      }
+    },
+    '/repair/:fromId': {
+      component: (resolve) => {
+        require(['components/platform/repairDetail'], resolve)
+      }
+    },
+    '/reward': {
+      title: '我的奖状',
+      component: (resolve) => {
+        require(['components/platform/rewardList'], resolve)
+      }
+    },
+    '/reward/:fromId': {
+      component: (resolve) => {
+        require(['components/platform/rewardDetail'], resolve)
+      }
     }
   })
   // 默认找不到页面,全部重定向到首页

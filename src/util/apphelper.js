@@ -146,6 +146,7 @@ ApiUrls.platform_detail = AppHelper.WebApiRoot + 'ComRating/GetRatingDetail' // 
 ApiUrls.homeVisit_list = AppHelper.WebApiRoot + 'WorkFlow/GetFormList' // 家访列表
 ApiUrls.homeVisit_detail = AppHelper.WebApiRoot + 'WorkFlow/GetFormDetail' // 家访详细
 ApiUrls.homeVisit_post = AppHelper.WebApiRoot + 'WorkFlow/Save' // 家访提交
+ApiUrls.getCommInfo = AppHelper.WebApiRoot + 'Common/GetCommInfo' // 获取个人基础信息
 
 AppHelper.ApiUrls = ApiUrls
 
