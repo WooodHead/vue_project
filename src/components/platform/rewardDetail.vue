@@ -126,6 +126,7 @@
         fileHandle = file
       },
       onUpSuccess(file, ret) {
+        fileHandle = null
         this.ExtTxt4 = ret.info
         this.postData()
       },

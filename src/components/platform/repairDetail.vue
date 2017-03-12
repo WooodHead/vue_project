@@ -53,7 +53,7 @@
   import AppHelper from 'util/apphelper'
 
   const pagePrefix = 'platform'
-
+  let fileHandle = null
   export default {
     components: {
       Group,
@@ -69,7 +69,6 @@
     },
     data() {
       return {
-        fileHandle: null,
         isAskShow: false,
         UserName: '',
         UserPhone: '',
@@ -108,9 +107,10 @@
     },
     methods: {
       onFileSelect(file) {
-        this.fileHandle = file
+        fileHandle = file
       },
       onUpSuccess(file, ret) {
+        fileHandle = null
         this.ExtTxt2 = ret.info
         this.postData()
       },
@@ -122,8 +122,8 @@
           AppHelper.showMsg('请选择班级')
           return
         }
-        if (this.fileHandle) {
-          this.fileHandle.upload()
+        if (fileHandle) {
+          fileHandle.upload()
         } else {
           this.postData()
         }
