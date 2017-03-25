@@ -147,6 +147,7 @@ ApiUrls.homeVisit_list = AppHelper.WebApiRoot + 'WorkFlow/GetFormList' // 家访
 ApiUrls.homeVisit_detail = AppHelper.WebApiRoot + 'WorkFlow/GetFormDetail' // 家访详细
 ApiUrls.homeVisit_post = AppHelper.WebApiRoot + 'WorkFlow/Save' // 家访提交
 ApiUrls.getCommInfo = AppHelper.WebApiRoot + 'Common/GetCommInfo' // 获取个人基础信息
+ApiUrls.workFlow_delete = AppHelper.WebApiRoot + 'WorkFlow/Delete' // 删除
 
 AppHelper.ApiUrls = ApiUrls
 
@@ -194,12 +195,12 @@ AppHelper.post = (url, jsonData, prefix) => {
       if (!errorStr) {
         errorStr = '出错了,网络异常(' + resData.code + ')!'
       }
-      AppHelper.showMsg({type: 'text', width: '12em', msg: errorStr})
+      AppHelper.showMsg({type: 'warn', width: '12em', msg: errorStr})
       return Promise.reject(resData)
     }
   }).catch((response) => { // error callback
     AppHelper.loading(false)
-    AppHelper.showMsg({type: 'text', width: '12em', msg: '出错了,网络异常(' + response.status + ')!'})
+    AppHelper.showMsg({type: 'warn', width: '12em', msg: '出错了,网络异常(' + response.status + ')!'})
     return Promise.reject(response)
   })
 }

@@ -27,17 +27,32 @@
     <uploader :readonly="Status>1" :imageurl="ExtTxt2" @select="onFileSelect" @success="onUpSuccess"
               @error="onFileError"></uploader>
   </group>
-  <div v-show="Status>1">
+  <div v-show="Status>0">
     <cell title="当前状态" :value="StatusDesc"></cell>
-    <x-textarea :value.sync="FromMemo"></x-textarea>
+    <x-textarea v-show="Status>1" :value.sync="FromMemo"></x-textarea>
   </div>
   <box gap="10px 10px" v-show="Status<2">
-    <x-button :disabled="!isCanSubmit" type="warn" @click="isAskShow=true">{{ButtonTxt}}</x-button>
+    <flexbox>
+      <flexbox-item>
+        <x-button :disabled="!isCanSubmit" type="primary" @click="isAskShow=true">{{ButtonTxt}}</x-button>
+      </flexbox-item>
+      <flexbox-item v-show="Status>0">
+        <x-button type="warn" @click="isAskdel=true">删除</x-button>
+      </flexbox-item>
+    </flexbox>
   </box>
   <confirm :show.sync="isAskShow" confirm-text="确定" cancel-text="取消" :title="'您确定要'+ButtonTxt+'?'"
            @on-confirm="uploadFile">
   </confirm>
+  <confirm :show.sync="isAskdel" confirm-text="确定" cancel-text="取消" :title="'您确定要删除?'"
+           @on-confirm="deletePost">
+  </confirm>
 </template>
+<style>
+  .weui_input{
+    /*text-align: right;*/
+  }
+</style>
 <script>
   import Panel from 'vux-src/panel'
   import XButton from 'vux-src/x-button'
@@ -48,6 +63,7 @@
   import XTextarea from 'vux-src/x-textarea'
   import Box from 'vux-src/box'
   import PopupPicker from 'vux-src/popup-picker'
+  import {Flexbox, FlexboxItem} from 'vux-src/flexbox'
 
   import Uploader from 'components/uploader'
   import AppHelper from 'util/apphelper'
@@ -64,12 +80,15 @@
       XInput,
       Box,
       XTextarea,
+      Flexbox,
+      FlexboxItem,
       PopupPicker,
       Uploader
     },
     data() {
       return {
         isAskShow: false,
+        isAskdel: false,
         UserName: '',
         UserPhone: '',
         ClassName: '',
@@ -98,7 +117,9 @@
         if (this.UserPhone && this.UserPhone.length > 0 && this.$refs.inputphone && this.$refs.inputphone.valid) {
           if (this.Address && this.Address.length > 0) {
             if (this.FromContent && this.FromContent.length > 0) {
-              return true
+              if (this.selectClass && this.selectClass.length > 0) {
+                return true
+              }
             }
           }
         }
@@ -115,9 +136,20 @@
         this.postData()
       },
       onFileError(file, err) {
-        AppHelper.showMsg('图片上传失败,请重试')
+        AppHelper.showMsg({type: 'warn', width: '12em', msg: '图片上传失败!'})
+      },
+      deletePost() {
+        this.isAskdel = false
+        AppHelper.post2(AppHelper.ApiUrls.workFlow_delete, {fromId: this.FromId}, pagePrefix).then(() => {
+          AppHelper.showMsg('删除成功')
+          let backPath = {path: '/repair', append: true}
+          this.$route.router.replace(backPath)
+        }).catch((error) => {
+          AppHelper.showMsg('删除失败' + error)
+        })
       },
       uploadFile() {
+        this.isAskShow = false
         if (this.selectClass.length < 1) {
           AppHelper.showMsg('请选择班级')
           return
@@ -130,7 +162,7 @@
       },
       postData() {
         let postData = this.$data
-        postData.ClassId = this.selectClass[0]
+        postData.classId = this.selectClass[0]
         postData.Status = 1
         postData.FromTypeId = 'logisticsRepair' // 维修
         if (postData.FromId && postData.FromId.length < 10) {
@@ -139,24 +171,34 @@
         AppHelper.post2(AppHelper.ApiUrls.homeVisit_post, postData, pagePrefix).then(() => {
           AppHelper.showMsg('提交成功')
           let backPath = {path: '/repair', append: true}
-          this.$route.router.go(backPath)
+          this.$route.router.replace(backPath)
         })
       },
       loadData() {
         const cfg = {
           action: 'bzrClass'
         }
+        if (this.Status === 0) {
+          cfg.action += ',ownerInfo'
+        }
         AppHelper.post2(AppHelper.ApiUrls.getCommInfo, cfg, pagePrefix).then((jsonData) => {
+          this.$data = Object.assign({}, this.$data, jsonData.data)
           let cList = jsonData.data.bzrClassList
           if (cList && cList.length > 0) {
             this.classList = []
             for (var i in cList) {
               this.classList.push({value: cList[i].ClassId, name: cList[i].ClassName})
             }
+            if (!this.ClassId) {
+              this.ClassId = this.classList[0].value
+            }
           }
-          this.$data = Object.assign({}, this.$data, jsonData.data)
           if (this.ClassId) {
             this.selectClass = [this.ClassId]
+          }
+          let ownerInfo = jsonData.data.ownerInfo
+          if (ownerInfo && ownerInfo.UserId) {
+            this.$data = Object.assign({}, this.$data, ownerInfo)
           }
         })
       }

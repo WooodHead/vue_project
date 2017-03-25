@@ -14,7 +14,7 @@
           </li>
         </ul>
         <div v-if="!readonly" class="weui_uploader_input_wrp">
-          <input id="uploaderInput" class="weui_uploader_input" type="file" accept="image/*" multiple
+          <input id="uploaderInput" class="weui_uploader_input" type="file" accept="image/png,image/jpeg" multiple
                  @change="fileChange"/>
         </div>
       </div>
