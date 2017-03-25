@@ -64,6 +64,7 @@
   import Confirm from 'vux-src/confirm'
 
   import AppHelper from 'util/apphelper'
+
   const pagePrefix = 'Exams'
   let mMyChart
   export default {

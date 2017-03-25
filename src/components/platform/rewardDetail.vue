@@ -167,7 +167,8 @@
         })
       },
       postData() {
-        let postData = this.$data
+        let postData = {}
+        Object.assign(postData, this.$data)
         postData.MemberId = this.selectStudent[0]
         postData.ExtNum1 = this.selectGjjx[0]
         postData.Status = 1

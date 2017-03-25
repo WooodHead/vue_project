@@ -139,7 +139,6 @@
         AppHelper.showMsg({type: 'warn', width: '12em', msg: '图片上传失败!'})
       },
       deletePost() {
-        this.isAskdel = false
         AppHelper.post2(AppHelper.ApiUrls.workFlow_delete, {fromId: this.FromId}, pagePrefix).then(() => {
           AppHelper.showMsg('删除成功')
           let backPath = {path: '/repair', append: true}
@@ -149,7 +148,6 @@
         })
       },
       uploadFile() {
-        this.isAskShow = false
         if (this.selectClass.length < 1) {
           AppHelper.showMsg('请选择班级')
           return
@@ -161,7 +159,8 @@
         }
       },
       postData() {
-        let postData = this.$data
+        let postData = {}
+        Object.assign(postData, this.$data)
         postData.classId = this.selectClass[0]
         postData.Status = 1
         postData.FromTypeId = 'logisticsRepair' // 维修
