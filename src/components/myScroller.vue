@@ -73,7 +73,7 @@
         let cfg = Object.assign({}, {}, this.searchConfig)
         cfg.limit = this.pageConfig.limit || 10
         cfg.offset = this.pageConfig.offset || 1
-        AppHelper.post2(this.pageConfig.url, cfg, true).then((jsonData) => {
+        AppHelper.post2(this.pageConfig.url, cfg, 'platform').then((jsonData) => {
           if (cfg.offset === 1) {
             // 第一页，不数据清空为服务器端返回的数据
             dataSet = jsonData.data

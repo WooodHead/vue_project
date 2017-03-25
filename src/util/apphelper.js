@@ -136,7 +136,7 @@ var ApiUrls = {
   exams_student: AppHelper.WebRoot + 'exam.aspx/StudentExam',  // 加载学生某次考试信息
   exams_postcomment: AppHelper.WebRoot + 'exam.aspx/SaveComment'  // 家长填写评价
 }
-AppHelper.WebApiRoot = 'http://jyapp.cn:30011/api/'
+AppHelper.WebApiRoot = 'http://jyapp.cn:30005/api/'
 ApiUrls.rating_post = AppHelper.WebApiRoot + 'ComRating/PostRating' // 提交评价
 ApiUrls.rating_index = AppHelper.WebApiRoot + 'ComRating/GetComRating' // 加载首页数据
 ApiUrls.rating_detail = AppHelper.WebApiRoot + 'ComRating/GetRatingClassDetail' // 教师加载某次评价
