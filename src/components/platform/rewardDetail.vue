@@ -141,7 +141,9 @@
       onUpSuccess(file, ret) {
         fileHandle = null
         this.ExtTxt4 = ret.info
-        this.postData()
+        if (file) { // 上传文件后自动提交数据
+          this.postData()
+        }
       },
       onFileError(file, err) {
         AppHelper.showMsg({type: 'warn', width: '12em', msg: '图片上传失败!'})

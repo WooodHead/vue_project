@@ -27,6 +27,10 @@
     </group>
     <group title="我的奖状">
       <cell title="家长测试" :link="'/reward/?userType=2&uid=81cb14c5-621d-41b9-b031-94a6de024ebf_temp'"></cell>
+      <uploader @select="onFileSelect"
+                @success="onUpSuccess"
+                @error="onFileError">
+      </uploader>
     </group>
   </div>
 </template>
@@ -47,7 +51,8 @@
     },
     methods: {
       onFileSelect(file) {
-        file.upload()
+        // file.upload()
+        AppHelper.showMsg(file.name)
       },
       onUpSuccess(file, ret) {
         AppHelper.showMsg('图片上传成功')

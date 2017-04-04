@@ -72,6 +72,10 @@
         imageShow: false
       }
     },
+    created () {
+      // 暴露给android客户端调用
+      window.onPhotoSelected = this.onPhotoSelected
+    },
     methods: {
       fileChange: function (evt) {
         const files = evt.target.files
@@ -94,6 +98,11 @@
         } else {
           this.setUploadFile(f)
         }
+      },
+      onPhotoSelected(fullUrl) {
+        this.imageurl = fullUrl
+        // 返回给页面事件
+        this.$emit('success', null, {info: fullUrl})
       },
       // 设置上传
       setUploadFile(file) {
@@ -131,4 +140,5 @@
       }
     }
   }
+
 </script>

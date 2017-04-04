@@ -54,7 +54,7 @@ export default function (router) {
     },
     '/platform/:masterId': {
       component: (resolve) => {
-        require(['components/platform/detail'], resolve)
+        require(['components/platform/detailStar'], resolve)
       }
     },
     '/homeVisit': {
