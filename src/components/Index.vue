@@ -32,6 +32,10 @@
                 @error="onFileError">
       </uploader>
     </group>
+    <group title="班级评比">
+      <cell title="教师测试"
+            :link="'/rating/index/?uid=1335ba2d-b2a6-422f-8060-5bb9ce0049cd_temp&companyId=0d81a477-0e48-4231-bb46-3888e55a4d2f_temp'"></cell>
+    </group>
   </div>
 </template>
 <script>

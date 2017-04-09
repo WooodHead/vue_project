@@ -89,6 +89,27 @@ export default function (router) {
       component: (resolve) => {
         require(['components/platform/rewardDetail'], resolve)
       }
+    },
+    '/rating/index': {
+      title: '班级评比',
+      component: (resolve) => {
+        require(['components/classRating/ratingIndex'], resolve)
+      }
+    },
+    '/rating/index/list': {
+      component: (resolve) => {
+        require(['components/classRating/ratingViewIndexList'], resolve)
+      }
+    },
+    '/rating/class/list': {
+      component: (resolve) => {
+        require(['components/classRating/ratingViewClassList'], resolve)
+      }
+    },
+    '/rating/class/week': {
+      component: (resolve) => {
+        require(['components/classRating/ratingWeekList'], resolve)
+      }
     }
   })
   // 默认找不到页面,全部重定向到首页

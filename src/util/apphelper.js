@@ -134,7 +134,12 @@ var ApiUrls = {
   exams_index: AppHelper.WebRoot + 'exam.aspx/Index', // 加载首页数据
   exams_detail: AppHelper.WebRoot + 'exam.aspx/Exams',  // 教师加载某次考试
   exams_student: AppHelper.WebRoot + 'exam.aspx/StudentExam',  // 加载学生某次考试信息
-  exams_postcomment: AppHelper.WebRoot + 'exam.aspx/SaveComment'  // 家长填写评价
+  exams_postcomment: AppHelper.WebRoot + 'exam.aspx/SaveComment', // 家长填写评价
+  rating_index_list: AppHelper.WebRoot + 'rating.aspx/Index', // 班级评价首页接口
+  rating_save: AppHelper.WebRoot + 'rating.aspx/Save', // 班级评价首页接口
+  rating_GetClassSata: AppHelper.WebRoot + 'rating.aspx/GetClassSata', // 获取班级统计数据
+  rating_GetClassRatingList: AppHelper.WebRoot + 'rating.aspx/GetClassRatingList', // 获取班级明细数据
+  rating_GetClassWeekRatingList: AppHelper.WebRoot + 'rating.aspx/GetClassWeekRating' // 获取班级明细数据
 }
 AppHelper.WebApiRoot = 'http://jyapp.cn:30005/api/'
 ApiUrls.rating_post = AppHelper.WebApiRoot + 'ComRating/PostRating' // 提交评价
@@ -358,5 +363,21 @@ AppHelper.setStudentId = (value, prefix) => {
 }
 AppHelper.setUserType = (value) => {
   AppHelper.setStore('userType', value)
+}
+AppHelper.setCompanyId = (value) => {
+  AppHelper.setStore('companyId', value)
+}
+AppHelper.getCompanyId = () => {
+  return AppHelper.getQueryString('companyId', '')
+}
+AppHelper.link = (url) => {
+  AppHelper.getRoute().router.go(url)
+}
+AppHelper.formatDate = (dt) => {
+  let date = new Date()
+  if (dt) {
+    date = new Date(dt)
+  }
+  return date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate()
 }
 export default AppHelper

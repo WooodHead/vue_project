@@ -73,7 +73,7 @@
         let cfg = Object.assign({}, {}, this.searchConfig)
         cfg.limit = this.pageConfig.limit || 10
         cfg.offset = this.pageConfig.offset || 1
-        AppHelper.post2(this.pageConfig.url, cfg, 'platform').then((jsonData) => {
+        let resultBack = (jsonData) => {
           if (cfg.offset === 1) {
             // 第一页，不数据清空为服务器端返回的数据
             dataSet = jsonData.data
@@ -100,7 +100,12 @@
             this.showNoData = false
           }
           this.isFirsLoad = false
-        })
+        }
+        if (this.pageConfig.urlOld) {
+          AppHelper.post(this.pageConfig.urlOld, cfg, 'platform').then(resultBack)
+        } else {
+          AppHelper.post2(this.pageConfig.url, cfg, 'platform').then(resultBack)
+        }
       },
       loadMore(uuid) {
         if (!this.dataSource.rows || this.dataSource.rows.length < 1) {
@@ -178,4 +183,5 @@
 
     height: 200px;
   }
+
 </style>
