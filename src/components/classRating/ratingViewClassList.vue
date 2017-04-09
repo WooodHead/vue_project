@@ -87,7 +87,7 @@
           readyIsLoad: true
         },
         searchConfig: {
-          classId: AppHelper.getClassId()
+          classId: AppHelper.getParams('classId')
         }
       }
     }
