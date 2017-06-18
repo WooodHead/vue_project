@@ -129,19 +129,28 @@ const cndJs = {
   amazeui: '//cdn.bootcss.com/amazeui/2.7.2/js/amazeui.min.js',
   amazeui_css: '//cdn.bootcss.com/amazeui/2.7.2/css/amazeui.css'
 }
-AppHelper.WebRoot = 'http://jyapp.cn/api/'
-var ApiUrls = {
-  exams_index: AppHelper.WebRoot + 'exam.aspx/Index', // 加载首页数据
-  exams_detail: AppHelper.WebRoot + 'exam.aspx/Exams',  // 教师加载某次考试
-  exams_student: AppHelper.WebRoot + 'exam.aspx/StudentExam',  // 加载学生某次考试信息
-  exams_postcomment: AppHelper.WebRoot + 'exam.aspx/SaveComment', // 家长填写评价
-  rating_index_list: AppHelper.WebRoot + 'rating.aspx/Index', // 班级评价首页接口
-  rating_save: AppHelper.WebRoot + 'rating.aspx/Save', // 班级评价首页接口
-  rating_GetClassSata: AppHelper.WebRoot + 'rating.aspx/GetClassSata', // 获取班级统计数据
-  rating_GetClassRatingList: AppHelper.WebRoot + 'rating.aspx/GetClassRatingList', // 获取班级明细数据
-  rating_GetClassWeekRatingList: AppHelper.WebRoot + 'rating.aspx/GetClassWeekRating' // 获取班级明细数据
-}
+// AppHelper.WebRoot = 'http://jyapp.cn/api/'
 AppHelper.WebApiRoot = 'http://jyapp.cn:30005/api/'
+
+var ApiUrls = {
+  exams_index: AppHelper.WebApiRoot + 'Exam/Index', // 加载首页数据
+  exams_detail: AppHelper.WebApiRoot + 'Exam/Exams',  // 教师加载某次考试
+  exams_student: AppHelper.WebApiRoot + 'Exam/StudentExam',  // 加载学生某次考试信息
+  exams_postcomment: AppHelper.WebApiRoot + 'Exam/SaveComment', // 家长填写评价
+  rating_index_list: AppHelper.WebApiRoot + 'ClassRating/Index', // 班级评价首页接口
+  rating_save: AppHelper.WebApiRoot + 'ClassRating/Save', // 班级评价保存
+  rating_save_new: AppHelper.WebApiRoot + 'ClassRating/SaveNew', // 班级评价保存新接口
+  rating_GetClassSata: AppHelper.WebApiRoot + 'ClassRating/GetClassSata', // 获取班级统计数据
+  rating_GetClassRatingList: AppHelper.WebApiRoot + 'ClassRating/GetClassRatingList', // 获取班级明细数据
+  rating_GetClassWeekRatingList: AppHelper.WebApiRoot + 'ClassRating/GetClassWeekRating', // 获取班级明细数据
+  rating2_index_list: AppHelper.WebApiRoot + 'ClassRating1/Index', // 班级评价首页接口
+  rating2_subItemlist: AppHelper.WebApiRoot + 'ClassRating1/GetSubItemList', // 获取评价项子项
+  rating2_save: AppHelper.WebApiRoot + 'ClassRating1/Save', // 班级评价保存
+  rating2_save_new: AppHelper.WebApiRoot + 'ClassRating1/SaveNew', // 班级评价保存新接口
+  rating2_GetClassSata: AppHelper.WebApiRoot + 'ClassRating1/GetClassSata', // 获取班级统计数据
+  rating2_GetClassRatingList: AppHelper.WebApiRoot + 'ClassRating1/GetClassRatingList', // 获取班级明细数据
+  rating2_GetClassWeekRatingList: AppHelper.WebApiRoot + 'ClassRating1/GetClassWeekRating' // 获取班级明细数据
+}
 ApiUrls.rating_post = AppHelper.WebApiRoot + 'ComRating/PostRating' // 提交评价
 ApiUrls.rating_index = AppHelper.WebApiRoot + 'ComRating/GetComRating' // 加载首页数据
 ApiUrls.rating_detail = AppHelper.WebApiRoot + 'ComRating/GetRatingClassDetail' // 教师加载某次评价
@@ -173,41 +182,7 @@ AppHelper.script = (name, fn) => {
   }
 }
 AppHelper.post = (url, jsonData, prefix) => {
-  // 传递用户ID等数据
-  jsonData = Object.assign({}, AppHelper.getLocalUser(prefix), jsonData)
-  // console.log('post====>', url)
-  AppHelper.loading(true)
-  return Vue.http.post(url, jsonData || {}, {
-    timeout: 30000, // 30s超时
-    emulateJSON: false
-  }).then((response) => {
-    // success callback
-
-    AppHelper.loading(false)
-    const resData = JSON.parse(response.json().d)
-    // console.log(resData)
-
-    if (resData && !resData.data) {
-      return Promise.resolve({
-        code: 200,
-        data: resData
-      })
-    }
-    if (resData && resData.code === 200) {
-      return Promise.resolve(resData)
-    } else {
-      let errorStr = resData.msg
-      if (!errorStr) {
-        errorStr = '出错了,网络异常(' + resData.code + ')!'
-      }
-      AppHelper.showMsg({type: 'warn', width: '12em', msg: errorStr})
-      return Promise.reject(resData)
-    }
-  }).catch((response) => { // error callback
-    AppHelper.loading(false)
-    AppHelper.showMsg({type: 'warn', width: '12em', msg: '出错了,网络异常(' + response.status + ')!'})
-    return Promise.reject(response)
-  })
+  return AppHelper.post2(url, jsonData, prefix)
 }
 AppHelper.post2 = (url, jsonData, prefix) => {
   // 传递用户ID等数据
@@ -379,5 +354,18 @@ AppHelper.formatDate = (dt) => {
     date = new Date(dt)
   }
   return date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate()
+}
+let qiniuUptoken
+AppHelper.getUptoken = () => {
+  if (qiniuUptoken) {
+    return Promise.resolve(qiniuUptoken)
+  } else {
+    return AppHelper.post2(AppHelper.ApiUrls.getCommInfo, {action: 'uptoken'}).then((jsonData) => {
+      if (jsonData && jsonData.data && jsonData.data.uptoken) {
+        qiniuUptoken = jsonData.data.uptoken
+      }
+      return Promise.resolve(qiniuUptoken)
+    })
+  }
 }
 export default AppHelper

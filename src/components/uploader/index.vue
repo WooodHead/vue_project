@@ -21,43 +21,24 @@
     </div>
   </div>
 </template>
-<style lang="less">
-  @import "~vux/src/styles/weui/icon/weui_icon_font";
-  @import '~vux/src/styles/weui/widget/weui_cell/weui_uploader';
-
-  .weui_gallery {
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    background-color: #000000;
-    z-index: 1000;
-  }
-
-  .weui_gallery_img {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 60px;
-    left: 0;
-    background: center center no-repeat;
-    background-size: contain;
-  }
-</style>
 <script>
   import compressImg from './image'
   import upload from './upload'
+  import AppHelper from 'util/apphelper'
+
+  const moment = require('moment')
+
   let _id = 0
+  let mupToken
   const URL = window.URL || window.webkitURL || window.mozURL
   const options = {
-    url: 'http://www.jyapp.cn/SH_AjaxRequest/UploadImg.ashx',
+    url: 'http://upload.qiniu.com',
     type: 'file',
-    fileVal: 'Filedata',
+    fileVal: 'file',
     compress: {
-      width: 1000,
-      height: 750,
-      quality: 0.8
+      width: 1500,
+      height: 1500,
+      quality: 0.92
     }
   }
   export default{
@@ -75,6 +56,11 @@
     created () {
       // 暴露给android客户端调用
       window.onPhotoSelected = this.onPhotoSelected
+      if (!mupToken) {
+        AppHelper.getUptoken().then(token => {
+          mupToken = token
+        })
+      }
     },
     methods: {
       fileChange: function (evt) {
@@ -120,12 +106,27 @@
         // console.log(file.name)
         // file.upload()
       },
-      onBeforeSend() {
+      GetRandomNum(min, max) {
+        var Range = max - min
+        var Rand = Math.random()
+        return (min + Math.round(Rand * Range))
+      },
+      onBeforeSend(file, data, headers) {
+        if (!file.keyName) {
+          var filename = file.name
+          var mime = filename.toLowerCase().substr(filename.lastIndexOf('.'))
+          file.keyName = 'qiniu_' + moment().format('YYMM/DD/HHmmssSSS') + this.GetRandomNum(100, 999) + mime // 上传文件名
+        }
+        data.key = file.keyName
+        data.token = mupToken // 上传凭证
+        console.log(data)
       },
       onProgress(file, procent) {
-        this.content = procent + '%'
+        // this.content = procent + '%'
+        AppHelper.loading('正在上传...')
       },
       onSuccess(file, ret) {
+        AppHelper.loading(false)
         if (ret.state && ret.info) {
           this.$emit('success', file, ret)
         } else {
@@ -134,6 +135,7 @@
       },
       onError(file, err) {
         // console.log('onError:', err)
+        AppHelper.loading(false)
         this.$emit('error', file, err)
         this.content = '<i class="weui_icon_warn"></i>'
         // return true; // 阻止默认行为，不使用默认的失败态

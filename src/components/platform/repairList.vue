@@ -4,7 +4,7 @@
                  :page-config.once="pageConfig"
                  h="-100px"
                  :search-config.sync="searchConfig">
-        <cell v-else v-for="item in dataSource.rows" :title="item.FromContent" :value="item.StatusDesc"
+        <cell v-for="item in dataSource.rows" :title="item.FromContent" :value="item.StatusDesc"
               :inline-desc="item.CreateTime"
               @click="onClick(item)"></cell>
     </my-Scroller>

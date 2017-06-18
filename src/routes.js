@@ -1,10 +1,6 @@
 import AppHelper from 'util/apphelper'
 
 export default function (router) {
-  // router.beforeEach(function (transition) {
-  //   console.log(transition)
-  //   transition.next()
-  // })
   router.map({
     '/select': {
       title: '考试成绩',
@@ -79,6 +75,17 @@ export default function (router) {
         require(['components/platform/repairDetail'], resolve)
       }
     },
+    '/repairAdmin': {
+      title: '报修处理',
+      component: (resolve) => {
+        require(['components/platform/repairAdminList'], resolve)
+      }
+    },
+    '/repairAdmin/:fromId': {
+      component: (resolve) => {
+        require(['components/platform/repairAdminDetail'], resolve)
+      }
+    },
     '/reward': {
       title: '我的奖状',
       component: (resolve) => {
@@ -110,6 +117,27 @@ export default function (router) {
       component: (resolve) => {
         require(['components/classRating/ratingWeekList'], resolve)
       }
+    },
+    '/rating2/index': {
+      title: '班级评比',
+      component: (resolve) => {
+        require(['components/classRating2/ratingIndex'], resolve)
+      }
+    },
+    '/rating2/index/list': {
+      component: (resolve) => {
+        require(['components/classRating2/ratingViewIndexList'], resolve)
+      }
+    },
+    '/rating2/class/list': {
+      component: (resolve) => {
+        require(['components/classRating2/ratingViewClassList'], resolve)
+      }
+    },
+    '/rating2/class/week': {
+      component: (resolve) => {
+        require(['components/classRating2/ratingWeekList'], resolve)
+      }
     }
   })
   // 默认找不到页面,全部重定向到首页
@@ -118,6 +146,9 @@ export default function (router) {
   })
   router.afterEach(function (transition) {
     let myTitle = transition.to.title
+    if (transition.to.query && transition.to.query.typeName) {
+      myTitle = transition.to.query.typeName
+    }
     if (myTitle) {
       if (myTitle === '品德发展') {
         var typeCode = AppHelper.getParams('typeCode', '100')

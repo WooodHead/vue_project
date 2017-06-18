@@ -176,7 +176,7 @@
         if (this.CanPingJia && this.isChanged) {
           this.isChanged = false
           if (this.RatingItems.length > 0) {
-            for (var i in this.RatingItems) {
+            for (var i = 0; i < this.RatingItems.length; i++) {
               let one = this.RatingItems[i]
               if (!one.RatingScore || one.RatingScore < 1) {
                 return false
@@ -222,7 +222,7 @@
       },
       postRating() {
         let postItems = []
-        for (var i in this.RatingItems) {
+        for (var i = 0; i < this.RatingItems.length; i++) {
           let one = this.RatingItems[i]
           postItems.push({ItemId: one.RatingItemId, RatingScore: one.RatingScore})
         }

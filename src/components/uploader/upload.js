@@ -1,11 +1,8 @@
 export default function upload(options) {
   const {url, file, fileVal, onBeforeSend, onProgress, onError, onSuccess} = options
-  const {name, type, lastModifiedDate} = file
+  // const {name} = file
   const data = {
-    name: name,
-    type: type,
-    size: options.type === 'file' ? file.size : file.base64.length,
-    lastModifiedDate: lastModifiedDate
+    key: file.name
   }
   const headers = {}
 
@@ -29,27 +26,36 @@ export default function upload(options) {
   } else {
     formData.append(fileVal, file.base64)
   }
-
-  xhr.onreadystatechange = function () {
-    if (xhr.readyState === 4) {
-      if (xhr.status === 200) {
-        try {
-          // 只支持json
-          const ret = JSON.parse(xhr.responseText)
-          onSuccess(file, ret)
-        } catch (err) {
-          onError(file, err)
+  xhr.onload = function () {
+    if (xhr.status === 200) {
+      // console.log('onload==>' + xhr.responseText)
+      try {
+        // 只支持json
+        const ret = JSON.parse(xhr.responseText)
+        if (ret.key) {
+          onSuccess(file, {
+            state: true,
+            info: 'http://jyapp.qiniudn.com/' + ret.key
+          })
         }
-      } else {
-        onError(file, new Error('XMLHttpRequest response status is ' + xhr.status))
+        return
+      } catch (err) {
       }
+      onError(file, null)
+    } else {
+      onError(file, new Error('XMLHttpRequest response status is ' + xhr.status))
     }
+  }
+  xhr.onerror = function () {
+    onError(file, new Error('XMLHttpRequest response status is ' + xhr.status))
   }
   xhr.upload.addEventListener('progress', function (evt) {
     if (evt.total === 0) return
-
-    const percent = Math.ceil(evt.loaded / evt.total) * 100
-
+    let percent = Math.ceil(evt.loaded / evt.total) * 100
+    // console.log('progress==>', evt)
+    if (percent > 99) {
+      percent = 99 // 强制设置为99%
+    }
     onProgress(file, percent)
   }, false)
 

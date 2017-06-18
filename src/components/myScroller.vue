@@ -38,7 +38,10 @@
       pageConfig: { // 分页配置，包括url，limit 每页大小，offset 分页便宜量
         type: Object,
         default () {
-          return {}
+          return {
+            limit: 10,
+            offset: 1
+          }
         }
       },
       searchConfig: { // 查询条件配置
@@ -70,7 +73,7 @@
     methods: {
       loadData(pullAction) {
         let self = this
-        let cfg = Object.assign({}, {}, this.searchConfig)
+        let cfg = Object.assign({}, self.searchConfig)
         cfg.limit = this.pageConfig.limit || 10
         cfg.offset = this.pageConfig.offset || 1
         let resultBack = (jsonData) => {
@@ -112,6 +115,8 @@
           this.$broadcast('pullup:disable', uuid)
           return
         }
+        this.pageConfig.limit = this.pageConfig.limit || 10
+        this.pageConfig.offset = this.pageConfig.offset || 1
         this.pageConfig.offset++
         this.loadData('pullup')
       },
@@ -183,5 +188,7 @@
 
     height: 200px;
   }
+
+
 
 </style>

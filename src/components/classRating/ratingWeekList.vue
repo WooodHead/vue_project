@@ -1,17 +1,13 @@
 <template>
-  <style>
-        body {
-            background-color:#dedede;
-        }
-
-  </style>
-  <div style="background-color:#dedede;">
-    <group style="margin-top: -21px;">
-      <popup-picker :title="className" :data="dataRanges" :columns="2" :value.sync="dateRangeType"
-                    show-name></popup-picker>
+    <group :title="className" >
+      <popup-picker :data="dataRanges"
+                    :columns="2"
+                    :value.sync="dateRangeType"
+                    show-name>
+      </popup-picker>
     </group>
-    <div style="padding: 10px;">
-      <div v-for="item in dataSource">
+    <group title="评比结果">
+      <div v-for="item in dataSource" style="margin:0 10px 0 10px;">
         <div class="panel" @click="onViewDetias">
           <div class="panel-header item lineBorder fontWeight">
             {{item.DateDesc}}
@@ -32,15 +28,12 @@
           </div>
         </div>
       </div>
-    </div>
-  </div>
+    </group>
 </template>
 <style scoped>
     .panel * {
         font-family: "microsoft yahei";
-        /*font-size: 14px;*/
     }
-
     .panel {
         padding: 12px;
         background-color: #fff;
@@ -49,22 +42,17 @@
         border: 1px solid #ccc;
         width: 100;
     }
-
     .lineBorder {
         border-bottom: 1px solid #ccc;
-        padding-bottom: 5px;
-        margin-bottom: 5px;
-    }
 
+    }
     .colorSelected {
         color: #ff7043;
     }
-
     .panel-middle {
         display: flex;
         width: 100%;
     }
-
     .items {
         width: 100%;
     }
@@ -73,15 +61,12 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        height:35px;
-        line-height:35px;
     }
 
     .item-value {
         text-align: right;
         /*font-size: 14px;*/
     }
-
     .mXImg {
         width: 80px;
         height: 80px;
@@ -99,6 +84,7 @@
 </style>
 <script>
   import Group from 'vux-src/group'
+  import Cell from 'vux-src/cell'
   import PopupPicker from 'vux-src/popup-picker'
   import AppHelper from 'util/apphelper'
   import Nodata from 'components/NoData'
@@ -109,6 +95,7 @@
   export default {
     components: {
       Group,
+      Cell,
       PopupPicker,
       Nodata
     },
@@ -124,6 +111,7 @@
         let self = this
         let cfg = {
           companyId: AppHelper.getCompanyId(),
+          classId: this.classId,
           ratingYearId: self.ratingYearId,
           ratingWeekId: self.ratingWeekId
         }
@@ -148,7 +136,7 @@
         })
       },
       onViewDetias () {
-        AppHelper.link('/rating/class/list' + '?classId=' + this.searchConfig.classId + '&className=' + this.className)
+        AppHelper.link('/rating/class/list' + '?classId=' + this.classId + '&className=' + this.className)
       }
     },
     watch: {
@@ -172,13 +160,7 @@
         dateRangeType: [],
         dataSource: [],
         className: AppHelper.getParams('className', ''),
-        pageConfig: {
-          urlOld: AppHelper.ApiUrls.rating_GetClassRatingList,
-          readyIsLoad: true
-        },
-        searchConfig: {
-          classId: AppHelper.getParams('classId')
-        }
+        classId: AppHelper.getParams('classId')
       }
     }
   }

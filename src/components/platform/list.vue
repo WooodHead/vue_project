@@ -3,7 +3,7 @@
     <popup-picker title="已选择学期" :data="yearsList" :columns="(yearsList && yearsList.length>0)?1:0"
                   :value.sync="selectYear" show-name></popup-picker>
   </group>
-  <group title="创新展台">
+  <group :title="listTitle">
     <nodata v-show="!ratings"></nodata>
     <cell v-for="item in ratings" :title="item.RatingName" :value="item.RatingStatus"
           :inline-desc="item.RatingCount>0?'平均分: ' + item.RatingAvgScore + '&nbsp;&nbsp;&nbsp;&nbsp;(共' + item.RatingCount + '人)':'暂无评价'"
@@ -22,6 +22,7 @@
   let mExamsLoadType = 0
   let mExamsYear = ''
   let dataSet = {
+    listTitle: '创新展台',
     selectYear: [],
     yearsList: []
   }
@@ -35,6 +36,9 @@
       return dataSet
     },
     created() {
+      if (this.$route.query && this.$route.query.typeName) {
+        this.listTitle = this.$route.query.typeName
+      }
       this.loadData(1)
     },
     watch: {

@@ -1,70 +1,82 @@
 <template>
-	<style>
-		.item-content {
-			flex-direction: row;
-			width: 100%;
-			display: flex;
-			background-color: #fff;
-			justify-content: space-between;
+  <style>
+		.vux-flexbox {
 			font-size: 14px;
+			padding: 5px;
 		}
-
-		.item-content div {
-			padding: 2px 10px;
-		}
-
 		.bold {
 			font-weight: 700
 		}
-
 		.mome {
 			color: #888;
-
-		}
-
-		.start {
-			color:red;
 		}
 
 		.time {
 			font-weight: 400;
 		}
-
 		.split {
 			height: 1px;
 			background-color: #e0e0e0;
 			border: none;
 		}
-
-		.lineline {
-			border: none;
-			height: 1px;
-			margin-top: 8px;
-			background-color: #aaa;
-		}
-	</style>
-	<div style="margin: 0px 6px;background-color: #fff;padding: 2px 10px; line-height: 40px;height: 40px;">{{className}} 评价列表</div>
-	<hr class="split" />
-	<my-Scroller :data-source.sync="dataSource" :search-config.sync="searchConfig" :page-config.once="pageConfig">
-		<div>
-			<div v-for="item in dataSource.rows" style="margin: 0px 6px;padding:5px 0px">
-				<div class="item-content bold">
-					<div class="left">{{item.ItemName}} <span >{{{item.RatingResultDesc}}}</span></div>
-					<div class="right time">{{item.RationgDateTime}}</div>
-				</div>
-				<div class="item-content mome">
-					<div class="left ">{{item.ChineseName}}</div>
-					<div class="right ">{{item.Mome}}</div>
-				</div>
-				<hr class="split" />
-			</div>
-		</div>
-	</my-Scroller>
+    .imgBox {
+        margin: 5px;
+        width: 50px;
+        height: 50px;
+        background: no-repeat center center;
+        background-size: cover;
+    }
+  </style>
+  <div class="weui_gallery" v-show.sync='imageShow' @click="imageShow=!imageShow">
+      <span class="weui_gallery_img"
+            :style="{'backgroundImage': 'url(' + imageurl + ')'}"></span>
+  </div>
+  <group :title="className+'评价列表'">
+    <my-Scroller :data-source.sync="dataSource" :search-config.sync="searchConfig" :page-config.once="pageConfig">
+      <div>
+        <div v-for="item in dataSource.rows">
+          <flexbox :gutter="0" align="stretch">
+            <flexbox-item :span="1/4">
+              <flexbox orient="vertical" :gutter="0">
+                <flexbox-item class="bold">
+                  {{item.ItemName}}<span>{{{item.RatingResultDesc}}}</span>
+                </flexbox-item>
+                <flexbox-item class="mome">
+                  {{item.ChineseName}}
+                </flexbox-item>
+              </flexbox>
+            </flexbox-item>
+            <flexbox-item :span="1/4">
+              <div v-if="item.ImgPath" class="imgBox weui_uploader_file_status"
+                   @click="imgClick(item.ImgPath)"
+                   :style="{'backgroundImage': 'url(' + item.ImgPath + ')'}">
+              </div>
+            </flexbox-item>
+            <flexbox-item>
+              <flexbox orient="vertical" :gutter="0" align="stretch">
+                <flexbox-item class="time">
+                  {{item.RationgDateTime}}
+                </flexbox-item>
+                <flexbox-item class="mome">
+                  {{item.Mome}}
+                </flexbox-item>
+              </flexbox>
+            </flexbox-item>
+          </flexbox>
+          <hr class="split"/>
+        </div>
+      </div>
+    </my-Scroller>
+  </group>
 </template>
 <script>
   import Group from 'vux-src/group'
   import PopupPicker from 'vux-src/popup-picker'
   import Cell from 'vux-src/cell'
+  import XImg from 'vux-src/x-img'
+  import {Flexbox, FlexboxItem} from 'vux-src/flexbox'
+  import Divider from 'vux-src/divider'
+
   import AppHelper from 'util/apphelper'
   import Nodata from 'components/NoData'
   import myScroller from 'components/myScroller'
@@ -74,12 +86,18 @@
       Group,
       PopupPicker,
       Cell,
+      XImg,
+      Flexbox,
+      FlexboxItem,
+      Divider,
       Nodata,
       myScroller
     },
     data() {
       return {
         selectIndex: 1,
+        imageurl: '',
+        imageShow: false,
         dataSource: {},
         className: AppHelper.getParams('className', ''),
         pageConfig: {
@@ -89,6 +107,12 @@
         searchConfig: {
           classId: AppHelper.getParams('classId')
         }
+      }
+    },
+    methods: {
+      imgClick: function (src) {
+        this.imageShow = !this.imageShow
+        this.imageurl = src
       }
     }
   }

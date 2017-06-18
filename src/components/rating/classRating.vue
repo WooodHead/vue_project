@@ -13,7 +13,8 @@
     </div>
   </card>
   <group title="学生列表">
-    <cell v-for="item in StudentList" :title="item.UserName" :link="{ path: 'user/'+item.UserId, append: true}">
+    <cell v-for="item in StudentList" :title="item.UserName" :value="item.ResultScoreTxt"
+          :link="{ path:'user/'+item.UserId + '?typeCode=' + mTypeCode + '&typeName='+mTypeName, append:true}">
       <my-rater :items="item.myRater"></my-rater>
     </cell>
   </group>
@@ -31,7 +32,6 @@
   // 全局变量,重定向后可保存页面数据
   let mExamsId = ''
   // let mClassId = AppHelper.getClassId()
-  let dataSet = {}
   export default {
     components: {
       Group,
@@ -52,9 +52,8 @@
           ratingMasterId: mExamsId
         }
         AppHelper.post2(AppHelper.ApiUrls.rating_detail, cfg, pagePrefix).then((jsonData) => {
-          delete dataSet.StudentList
-          dataSet = Object.assign({}, dataSet, jsonData.data)
-          this.$data = dataSet
+          delete this.StudentList
+          this.$data = Object.assign({}, this.$data, jsonData.data)
           if (this.StudentList && this.StudentList.length > 0) {
             _(this.StudentList).forEach(function (item) {
               if (item.ResultCode) {
@@ -65,13 +64,19 @@
               } else {
                 item.myRater = []
               }
+              if (item.ResultScore) {
+                item.ResultScoreTxt = item.ResultScore + ' 分'
+              }
             })
           }
         })
       }
     },
     data() {
-      return dataSet
+      return {
+        mTypeCode: AppHelper.getParams('typeCode', '100'),
+        mTypeName: AppHelper.getParams('typeName', '')
+      }
     }
   }
 </script>

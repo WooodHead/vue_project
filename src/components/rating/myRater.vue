@@ -65,7 +65,7 @@
           if (this.items.length === 1) {
             this.value = 0
           }
-          for (var i in this.items) {
+          for (var i = 0; i < this.items.length; i++) {
             let item = this.items[i]
             if (this.selectItem && this.selectItem.ResultCode && this.value === -1) {
               if (this.selectItem && this.selectItem.ResultCode === item.ResultCode) {

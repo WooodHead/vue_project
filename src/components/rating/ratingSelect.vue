@@ -3,7 +3,8 @@
     <popup-picker v-if="this.userType==1 && classList && classList.length>0" title="已选择班级" :data="classList"
                   :columns="(classList && classList.length>0)?1:0"
                   :value.sync="selectClass" show-name></popup-picker>
-    <popup-picker v-if="this.userType==2 && studentList && studentList.length>0" title="已选择学生" :data="studentList" :columns="(studentList && studentList.length>0)?1:0"
+    <popup-picker v-if="this.userType==2 && studentList && studentList.length>0" title="已选择学生" :data="studentList"
+                  :columns="(studentList && studentList.length>0)?1:0"
                   :value.sync="selectClass" show-name></popup-picker>
     <popup-picker title="已选择学年" :data="yearsList" :columns="(yearsList && yearsList.length>0)?1:0"
                   :value.sync="selectYear" show-name></popup-picker>
@@ -12,7 +13,8 @@
     <nodata v-show="!ratings"></nodata>
     <cell v-for="item in ratings" :title="item.RatingName" :value="item.RatingStatus"
           :inline-desc="item.BeginTime + ' 至 ' + item.EndTime"
-          :link="'/rating/'+item.RatingMasterId + (userType===1?'':'/user/'+selectClass[0])"></cell>
+          :link="'/rating/'+item.RatingMasterId + (userType===1?'':'/user/'+selectClass[0]) + '?typeCode=' + mTypeCode + '&typeName='+mTypeName">
+    </cell>
   </group>
 </template>
 <script>
@@ -26,15 +28,6 @@
   // 重定向后可保存页面数据
   let mExamsLoadType = 0
   let mExamsYear = ''
-  let dataSet = {
-    selectYear: [],
-    selectClass: [],
-    yearsList: [],
-    classList: [],
-    studentList: [],
-    studentStore: {},
-    userType: AppHelper.getUserType()
-  }
   const ratingSelect = {
     components: {
       Group,
@@ -42,12 +35,20 @@
       Cell
     },
     data() {
-      return dataSet
+      return {
+        selectYear: [],
+        selectClass: [],
+        yearsList: [],
+        classList: [],
+        studentList: [],
+        studentStore: {},
+        mTypeCode: AppHelper.getParams('typeCode', '100'),
+        mTypeName: AppHelper.getParams('typeName', ''),
+        userType: AppHelper.getUserType()
+      }
     },
     created() {
-      // if (mExamsLoadType === 0) {
       this.loadData(1)
-      // }
     },
     watch: {
       selectClass(val, oldVal) {
@@ -96,11 +97,11 @@
           case 2: // 切换班级或者学生
             mExamsYear = ''
             this.selectYear = []
-            dataSet.yearsList = []
-            delete dataSet.ratings
+            this.yearsList = []
+            delete this.ratings
             break
           case 3: // 切换学年
-            delete dataSet.ratings
+            delete this.ratings
             break
         }
         const cfg = {
@@ -109,8 +110,7 @@
           ratingTypeCode: AppHelper.getParams('typeCode', '100')
         }
         AppHelper.post2(AppHelper.ApiUrls.rating_index, cfg, pagePrefix).then((jsonData) => {
-          dataSet = Object.assign({}, dataSet, jsonData.data)
-          this.$data = dataSet
+          this.$data = Object.assign({}, this.$data, jsonData.data)
           if (this.classList && this.classList.length > 0 && this.userType !== 1) {
             this.userType = 1
             AppHelper.setUserType(1)

@@ -133,16 +133,15 @@
     },
     methods: {
       datechange (value) {
-        console.log('datechange', value)
+        // console.log('datechange', value)
       },
       onFileSelect(file) {
         fileHandle = file
       },
       onUpSuccess(file, ret) {
         fileHandle = null
-        this.ExtTxt4 = ret.info
         if (file) { // 上传文件后自动提交数据
-          this.postData()
+          this.postData(ret.info)
         }
       },
       onFileError(file, err) {
@@ -168,9 +167,12 @@
           AppHelper.showMsg('删除失败' + error)
         })
       },
-      postData() {
+      postData(fileUrl) {
         let postData = {}
         Object.assign(postData, this.$data)
+        if (fileUrl) {
+          postData.ExtTxt4 = fileUrl
+        }
         postData.MemberId = this.selectStudent[0]
         postData.ExtNum1 = this.selectGjjx[0]
         postData.Status = 1
@@ -195,7 +197,7 @@
           let cList = jsonData.data.familyStudentList
           if (cList && cList.length > 0) {
             this.studentList = []
-            for (var i in cList) {
+            for (var i = 0; i < this.cList.length; i++) {
               this.studentList.push({value: cList[i].UserId, name: cList[i].ChineseName})
             }
             if (!this.MemberId) {

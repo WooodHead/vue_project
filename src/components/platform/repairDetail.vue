@@ -16,6 +16,12 @@
                   :columns="(classList && classList.length>0)?1:0"
                   :value.sync="selectClass" show-name>
     </popup-picker>
+    <cell v-if="Status>1" title="处理人" :value="MemberName"></cell>
+    <popup-picker v-else title="处理人"
+                  :data="logisticsRepairAuditUser"
+                  :columns="(logisticsRepairAuditUser && logisticsRepairAuditUser.length>0)?1:0"
+                  :value.sync="selectAuditUser" show-name>
+    </popup-picker>
   </group>
   <group title="维修地址">
     <x-textarea :max="100" placeholder="如:本班教室" :value.sync="Address"></x-textarea>
@@ -29,7 +35,9 @@
   </group>
   <div v-show="Status>0">
     <cell title="当前状态" :value="StatusDesc"></cell>
-    <x-textarea v-show="Status>1" :value.sync="FromMemo"></x-textarea>
+    <box v-show="Status>1" gap="10px 0px 10px 15px">
+      {{FromMemo}}
+    </box>
   </div>
   <box gap="10px 10px" v-show="Status<2">
     <flexbox>
@@ -48,12 +56,6 @@
            @on-confirm="deletePost">
   </confirm>
 </template>
-<style>
-  .weui_input{
-    /*text-align: right;*/
-  }
-
-</style>
 <script>
   import Panel from 'vux-src/panel'
   import XButton from 'vux-src/x-button'
@@ -70,6 +72,8 @@
   import AppHelper from 'util/apphelper'
 
   const pagePrefix = 'platform'
+  const _ = require('lodash')
+
   let fileHandle = null
   export default {
     components: {
@@ -98,9 +102,13 @@
         FromContent: '',
         Status: 0,
         FromId: '',
+        MemberId: '',
+        MemberName: '',
         ButtonTxt: '提交',
         classList: [],
-        selectClass: []
+        selectClass: [],
+        logisticsRepairAuditUser: [],
+        selectAuditUser: []
       }
     },
     created() {
@@ -133,9 +141,8 @@
       },
       onUpSuccess(file, ret) {
         fileHandle = null
-        this.ExtTxt2 = ret.info
         if (file) { // 上传文件后自动提交数据
-          this.postData()
+          this.postData(ret.info)
         }
       },
       onFileError(file, err) {
@@ -155,15 +162,31 @@
           AppHelper.showMsg('请选择班级')
           return
         }
+        if (this.selectAuditUser.length < 1) {
+          AppHelper.showMsg('请选择处理人')
+          return
+        }
         if (fileHandle) {
           fileHandle.upload()
         } else {
           this.postData()
         }
       },
-      postData() {
+      postData(fileUrl) {
         let postData = {}
-        Object.assign(postData, this.$data)
+        if (fileUrl) {
+          postData.ExtTxt2 = fileUrl
+        }
+        postData.FromId = this.FromId
+        postData.UserPhone = this.UserPhone
+        postData.Address = this.Address
+        postData.FromContent = this.FromContent
+        postData.MemberId = this.selectAuditUser[0]
+        if (!postData.MemberId) {
+          AppHelper.showMsg('请选择处理人')
+          return
+        }
+        postData.MemberName = _.find(this.logisticsRepairAuditUser, {value: postData.MemberId}).name
         postData.classId = this.selectClass[0]
         postData.Status = 1
         postData.FromTypeId = 'logisticsRepair' // 维修
@@ -178,17 +201,17 @@
       },
       loadData() {
         const cfg = {
-          action: 'bzrClass'
+          action: 'ownerClass,logisticsRepairAuditUser'
         }
         if (this.Status === 0) {
           cfg.action += ',ownerInfo'
         }
         AppHelper.post2(AppHelper.ApiUrls.getCommInfo, cfg, pagePrefix).then((jsonData) => {
           this.$data = Object.assign({}, this.$data, jsonData.data)
-          let cList = jsonData.data.bzrClassList
+          let cList = jsonData.data.ownerClassList
           if (cList && cList.length > 0) {
             this.classList = []
-            for (var i in cList) {
+            for (var i = 0; i < this.cList.length; i++) {
               this.classList.push({value: cList[i].ClassId, name: cList[i].ClassName})
             }
             if (!this.ClassId) {
@@ -197,6 +220,13 @@
           }
           if (this.ClassId) {
             this.selectClass = [this.ClassId]
+          }
+          if (this.MemberId) {
+            this.selectAuditUser = [this.MemberId]
+          }
+          if (this.selectAuditUser.length < 1 && this.logisticsRepairAuditUser && this.logisticsRepairAuditUser.length > 0) {
+            // 默认选中第一个
+            this.selectAuditUser = [this.logisticsRepairAuditUser[0].value]
           }
           let ownerInfo = jsonData.data.ownerInfo
           if (ownerInfo && ownerInfo.UserId) {

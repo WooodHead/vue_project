@@ -15,7 +15,7 @@
   <div v-for="item in RatingItems">
     <div class="weui_cells_title" @click="dropDown(item.RatingItemId)">
       <div class="weui_cell_bd weui_cell_primary">{{item.ItemName}}</div>
-      <div class="weui_cell_ft">
+      <div v-if="item.Memo" class="weui_cell_ft">
           <span class="demo_arrow"
                 :class="dropDownClass[item.RatingItemId]?dropDownClass[item.RatingItemId]:'normal'"></span>
       </div>
@@ -27,22 +27,45 @@
       </div>
     </div>
     <div class="weui_cells">
-      <cell v-show="isItemShow(item.RatingItemId,u.RatingType)" v-for="u in RatingUsers" :title="u.Title">
-        <my-rater v-if="currentType===1" :disabled="u.RatingType!==1"
-                  :data="{ItemId:item.RatingItemId,UserType:u.RatingType}"
-                  @item-select="itemSelect"
-                  :select-item="getOneItem(item.RatingItemId,u.RatingType)[0]"
-                  :items="u.RatingType!==1||!CanPingJia?getOneItem(item.RatingItemId,u.RatingType):SelectItems"></my-rater>
-        <my-rater v-else :disabled="u.RatingType===1"
-                  :data="{ItemId:item.RatingItemId,UserType:u.RatingType}"
-                  @item-select="itemSelect"
-                  :select-item="getOneItem(item.RatingItemId,u.RatingType)[0]"
-                  :items="u.RatingType===1||!CanPingJia?getOneItem(item.RatingItemId,u.RatingType):SelectItems"></my-rater>
-      </cell>
+      <div v-show="isItemShow(item,u.RatingType)" v-for="u in RatingUsers">
+        <div v-if="item.ContentType===3">
+          <cell v-if="isDisabled(item)">
+            {{ textItmes[item.RatingItemId][u.RatingType].Memo || '未填写' }}
+          </cell>
+          <x-textarea
+            v-else
+            placeholder="请输入内容"
+            :max="200"
+            @on-change="textChange(item,u.RatingType)"
+            :value.sync="textItmes[item.RatingItemId][u.RatingType].Memo">
+          </x-textarea>
+        </div>
+        <cell v-if="item.ContentType===2" :title="u.Title">
+          <rater
+            slot="value"
+            :disabled="isDisabled(item)"
+            @click="textChange(item,u.RatingType)"
+            :value.sync="textItmes[item.RatingItemId][u.RatingType].RatingScore"
+            :max="item.MaxScore">
+          </rater>
+        </cell>
+        <cell v-if="item.ContentType===1" :title="u.Title">
+          <my-rater v-if="currentType===1" :disabled="u.RatingType!==1"
+                    :data="{ItemId:item.RatingItemId,UserType:u.RatingType}"
+                    @item-select="itemSelect"
+                    :select-item="getOneItem(item.RatingItemId,u.RatingType)"
+                    :items="u.RatingType!==1||!CanPingJia?[getOneItem(item.RatingItemId,u.RatingType)]:SelectItems"></my-rater>
+          <my-rater v-else :disabled="u.RatingType===1"
+                    :data="{ItemId:item.RatingItemId,UserType:u.RatingType}"
+                    @item-select="itemSelect"
+                    :select-item="getOneItem(item.RatingItemId,u.RatingType)"
+                    :items="u.RatingType===1||!CanPingJia?[getOneItem(item.RatingItemId,u.RatingType)]:SelectItems"></my-rater>
+        </cell>
+      </div>
     </div>
   </div>
   <box gap="10px 10px" v-show="CanPingJia">
-    <x-button :disabled="!isCanSubmit" type="warn" @click="isAskShow=true">提交评价</x-button>
+    <x-button type="warn" @click="isCanSubmit">提交评价</x-button>
   </box>
   <confirm :show.sync="isAskShow" confirm-text="确定" cancel-text="取消" title="您确定要提交评价?" @on-confirm="postRating">
   </confirm>
@@ -137,6 +160,7 @@
       transition:all .3s ease-in .1s;
     }
 
+
   </style>
 </template>
 <script>
@@ -147,6 +171,8 @@
   import Card from 'vux-src/card'
   import Group from 'vux-src/group'
   import Cell from 'vux-src/cell'
+  import XTextarea from 'vux-src/x-textarea'
+  import Rater from 'vux-src/rater'
 
   import AppHelper from 'util/apphelper'
   import MyRater from './myRater'
@@ -159,6 +185,8 @@
   export default {
     components: {
       Group,
+      XTextarea,
+      Rater,
       Panel,
       Card,
       Cell,
@@ -172,12 +200,13 @@
     },
     data() {
       return {
+        submitCount: 0,
         SelectItems: null,
         panelClass: {},
         dropDownClass: {},
         isAskShow: false,
-        isChanged: false,
         ResultItmes: [],
+        textItmes: {},
         currentType: AppHelper.getUserType()
       }
     },
@@ -186,22 +215,20 @@
       this.currentType = AppHelper.getUserType()
       this.loadData()
     },
-    computed: {
-      isCanSubmit() {
-        // console.log('ResultItmes====>', this.CanPingJia, this.isChanged)
-        if (this.CanPingJia && this.isChanged) {
-          var count = this.RatingItems.length
-          // 投票有学生参与
-          if (this.currentType !== 1 && (this.UserType & 4) === 4) {
-            // 家长要投2个人的
-            count = count * 2
-          }
-          return this.ResultItmes.length === count
-        }
-        return false
-      }
-    },
     methods: {
+      isCanSubmit() {
+        if (this.CanPingJia && this.ResultItmes.length === this.submitCount) {
+          // 用户需要提交的选项总数量
+          this.isAskShow = true
+          return
+        }
+        AppHelper.alert('请填写完所有评价项目再提交!')
+      },
+      textChange(item, UserType) {
+        let curItem = this.textItmes[item.RatingItemId][UserType]
+        // 加入到提交数组
+        this.itemSelect(curItem, {ItemId: item.RatingItemId, UserType: UserType})
+      },
       dropDown(itemId) {
         if (itemId) {
           var newval = false
@@ -222,29 +249,55 @@
           RatingItmes: this.ResultItmes
         }
         AppHelper.post2(AppHelper.ApiUrls.rating_post, cfg, pagePrefix).then((jsonData) => {
-          // console.log('post2====>jsonData ', jsonData)
           AppHelper.showMsg(jsonData.data)
           let backPath = {path: '/rating/', append: true}
           if (this.currentType === 1 && this.RatingMasterId) {
             backPath.path = backPath.path + this.RatingMasterId
+          }
+          let typeCode = AppHelper.getParams('typeCode', '100')
+          if (typeCode) {
+            backPath.path += '?typeCode=' + typeCode
+            typeCode = AppHelper.getParams('typeName', '')
+            if (typeCode) {
+              backPath.path += '&typeName=' + typeCode
+            }
           }
           this.$route.router.go(backPath)
         })
       },
       itemSelect(item, ratingItem) {
         if (item) {
-          this.isChanged = true
+          let one
           if (this.ResultItmes.length > 0) {
-            let one = _.find(this.ResultItmes, {ItemId: ratingItem.ItemId, UserType: ratingItem.UserType})
-            if (one) {
-              // 从队列中找出,改变
-              one.ResultId = item.RatingItemResultId
-              return
+            one = _.find(this.ResultItmes, {ItemId: ratingItem.ItemId, UserType: ratingItem.UserType})
+          }
+          let isAdd = false
+          if (!one) {
+            isAdd = true
+            one = ratingItem
+          }
+          if (item.RatingItemResultId) {
+            one.ResultId = item.RatingItemResultId
+          } else {
+            Object.assign(one, item)
+          }
+          if (one.ContentType === 2 && (!one.RatingScore || one.RatingScore === 0)) {
+            if (isAdd) {
+              isAdd = false
+            } else {
+              _.remove(this.ResultItmes, one)
             }
           }
-          ratingItem.ResultId = item.RatingItemResultId
-          // 加入选择队列
-          this.ResultItmes.push(ratingItem)
+          if (one.ContentType === 3 && (!one.Memo || one.Memo.length < 1)) {
+            if (isAdd) {
+              isAdd = false
+            } else {
+              _.remove(this.ResultItmes, one)
+            }
+          }
+          if (isAdd) {
+            this.ResultItmes.push(one)
+          }
         }
       },
       loadData() {
@@ -253,10 +306,47 @@
           ratingMasterId: AppHelper.getParams('masterId')
         }
         var objData = this.$data
+        this.submitCount = 0
         AppHelper.post2(AppHelper.ApiUrls.rating_student, cfg, pagePrefix).then((jsonData) => {
           objData = Object.assign({}, objData, jsonData.data)
           this.$data = objData
+          // 评价项目
+          for (var j = 0; j < this.RatingItems.length; j++) {
+            var rtItem = this.RatingItems[j]
+            rtItem.ContentType = rtItem.ContentType || 1
+            // 指定了该选项哪些用户可以提交
+            let mUserType = rtItem.UserType || this.UserType
+            if ((mUserType & this.currentType) === this.currentType) {
+              // 教师或家长
+              this.submitCount++
+            }
+            // 投票有学生参与
+            if (this.currentType !== 1 && (mUserType & 4) === 4) {
+              // 家长要投2个人的
+              this.submitCount++
+            }
+            if (rtItem.ContentType === 2 || rtItem.ContentType === 3) {
+              this.textItmes[rtItem.RatingItemId] = {
+                '1': {RatingScore: 0, ContentType: rtItem.ContentType},
+                '2': {RatingScore: 0, ContentType: rtItem.ContentType},
+                '4': {RatingScore: 0, ContentType: rtItem.ContentType}
+              }
+              let subItems = _.filter(this.ItemResults, {RatingItemId: rtItem.RatingItemId})
+              if (subItems && subItems.length > 0) {
+                j = 0
+                for (j in subItems) {
+                  this.textItmes[rtItem.RatingItemId][subItems[j].UserType] = {
+                    ContentType: rtItem.ContentType,
+                    RatingScore: subItems[j].ResultScore,
+                    Memo: subItems[j].Memo
+                  }
+                }
+              }
+            }
+          }
+          // 提交的评价数据
           this.ResultItmes = []
+          // 评价结果
           if (this.ItemResults && this.ItemResults.length > 0) {
             let newItems = null
             if (this.currentType === 1) {
@@ -269,14 +359,16 @@
               })
             }
             if (newItems && newItems.length > 0) {
-              for (var i in newItems) {
+              for (var i = 0; i < newItems.length; i++) {
                 var item = newItems[i]
                 let one = _.find(this.ResultItmes, {ItemId: item.RatingItemId, UserType: item.UserType})
                 if (!one) {
                   this.ResultItmes.push({
                     ItemId: item.RatingItemId,
                     ResultId: item.RatingItemResultId,
-                    UserType: item.UserType
+                    UserType: item.UserType,
+                    Memo: item.Memo,
+                    RatingScore: item.RatingScore
                   })
                 }
               }
@@ -288,20 +380,40 @@
         if (this.ItemResults && this.ItemResults.length > 0) {
           let item = _.find(this.ItemResults, {RatingItemId: ratingItemId, UserType: type})
           if (item) {
-            return [item]
+            return item
           }
         }
-        return [{starImg: '∅'}]
+        return {starImg: '∅'}
       },
-      isItemShow(ratingItemId, type) {
+      isDisabled(item) {
+        if (this.CanPingJia) {
+          let mUserType = item.UserType || this.UserType
+          console.log(item.ItemName, mUserType, this.currentType, (mUserType & this.currentType) === this.currentType)
+          if ((mUserType & this.currentType) === this.currentType) {
+            return false
+          }
+          // 投票有学生参与
+          if (this.currentType !== 1 && (mUserType & 4) === 4) {
+            // 家长要投2个人的
+            return false
+          }
+        }
+        return true
+      },
+      isItemShow(item, mainType) {
+        if (item.UserType) {
+          if ((mainType & item.UserType) !== item.UserType) {
+            return false
+          }
+        }
         // 是老师,评价项也是老师填写的
-        if (AppHelper.getUserType() === 1 && type === 1) {
+        if (this.currentType === 1 && mainType === 1) {
           return true
         }
-        if (AppHelper.getUserType() !== 1 && type !== 1) {
+        if (this.currentType !== 1 && mainType !== 1) {
           return true
         }
-        return this.getOneItem(ratingItemId, type).length > 0
+        return this.getOneItem(item.RatingItemId, mainType)
       }
     }
   }

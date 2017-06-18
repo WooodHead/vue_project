@@ -3,7 +3,6 @@
     body {
       background-color: #eee;
     }
-
     .classTb {
       width: 100%;
       background-color: #fff;
@@ -73,19 +72,16 @@
 
     .popup0 {
       padding-bottom: 15px;
-      height: 350px;
+      height: 480px;
     }
-
     .weui_cells_title {
-      margin-top: .77em;
-      margin-bottom: .3em;
+      margin-top: .2em;
+      margin-bottom: .2em;
       padding-left: 15px;
       padding-right: 15px;
       color: #000;
-      font-size: 18px;
+      font-size: 15px;
     }
-
-
 
   </style>
   <div style="background-color: #fff;margin-top: -15px;padding-top: 5px;">
@@ -103,6 +99,12 @@
     <div class="popup0">
       <group title="选择评价结果">
         <radio :options="openItems" :value.sync="openItemValue"></radio>
+      </group>
+      <group title="图片上传">
+        <uploader :imageurl="imgPath" @select="onFileSelect"
+                  @success="onUpSuccess"
+                  @error="onFileError">
+        </uploader>
       </group>
       <group title="评价描述:">
         <x-textarea :max="200" placeholder="请填写详细信息" :value.sync="orderMome"></x-textarea>
@@ -124,7 +126,7 @@
         <x-button type="primary" @click="onClosePingJia">关闭</x-button>
       </flexbox-item>
       <flexbox-item>
-        <x-button type="warn" @click="onSubmitPingJia" style="background-color: #F75224">提交班级评价</x-button>
+        <x-button type="warn" @click="uploadFile" style="background-color: #F75224">提交班级评价</x-button>
       </flexbox-item>
     </flexbox>
   </div>
@@ -139,9 +141,13 @@
   import Radio from 'vux-src/radio'
   import XTextarea from 'vux-src/x-textarea'
   import {Flexbox, FlexboxItem} from 'vux-src/flexbox'
+
+  import Uploader from 'components/uploader'
+
   let tempRatingItemId = null
   let $ = null
   const _ = require('lodash')
+  let fileHandle = null
 
   export default {
     components: {
@@ -153,7 +159,8 @@
       Group,
       Popup,
       Radio,
-      XTextarea
+      XTextarea,
+      Uploader
     },
     data () {
       return {
@@ -172,13 +179,15 @@
         ratingItemList: [], // 评价项数据源
         selectedClassIds: [],
         today: '今日: ' + AppHelper.formatDate(),
-        userId: AppHelper.getUserId()
+        userId: AppHelper.getUserId(),
+        imgPath: '' // 附加图片
       }
     },
     created () {
       if (tempRatingItemId) {
         this.ratingItemId = tempRatingItemId
       }
+      this.imgPath = ''
       AppHelper.setCompanyId(AppHelper.getCompanyId())
       AppHelper.script('jquery', () => {
         $ = window.$
@@ -220,7 +229,7 @@
           loadType: this.loadType,
           ratingItemId: this.ratingItemId
         }
-        AppHelper.post(AppHelper.ApiUrls.rating_index_list, cfg).then((jsonData) => {
+        AppHelper.post2(AppHelper.ApiUrls.rating_index_list, cfg).then((jsonData) => {
           self.classList = jsonData.data.classList
           self.watchRatingItemId = jsonData.data.ratingItemId
           // console.log('ratingItems:', jsonData.data.ratingItems)
@@ -271,13 +280,35 @@
           if (tempInfo && tempInfo.RatingDetails) {
             self.openItemValue = (tempInfo.RatingDetails.RatingResultDesc === '☆') ? '合格(☆)' : (tempInfo.RatingDetails.RatingResultDesc === '△' ? '待改进(△)' : '不合格(⊙)')
             self.orderMome = tempInfo.RatingDetails.Mome || ''
+            self.imgPath = tempInfo.RatingDetails.ImgPath || ''
           }
         }
-
         this.openShow = true
-        // this.openItemValue = ''
       },
-      onSubmitPingJia () {
+      onFileSelect(file) {
+        fileHandle = file
+      },
+      onUpSuccess(file, ret) {
+        fileHandle = null
+        if (file) { // 上传文件后自动提交数据
+          this.onSubmitPingJia(ret.info)
+        }
+      },
+      onFileError(file, err) {
+        AppHelper.showMsg({type: 'warn', width: '12em', msg: '图片上传失败!'})
+      },
+      uploadFile() {
+        if (this.openItemValue === '') {
+          AppHelper.alert('请选择评价结果')
+          return
+        }
+        if (fileHandle) {
+          fileHandle.upload()
+        } else {
+          this.onSubmitPingJia()
+        }
+      },
+      onSubmitPingJia (imgPath) {
         let self = this
         if (self.openItemValue === '') {
           AppHelper.alert('请选择评价结果')
@@ -290,6 +321,11 @@
           ratingItemId: self.ratingItemId,
           ratingMome: self.orderMome
         }
+        if (imgPath) {
+          cfg.imgPath = imgPath // 图片路径
+        } else {
+          cfg.imgPath = ''
+        }
         if (self.openItemValue === '合格(☆)') {
           cfg.ratingItemResult = 1
         } else if (self.openItemValue === '待改进(△)') {
@@ -298,7 +334,7 @@
           cfg.ratingItemResult = 3
         }
         // console.log(cfg)
-        AppHelper.post(AppHelper.ApiUrls.rating_save, cfg).then((jsonData) => {
+        AppHelper.post(AppHelper.ApiUrls.rating_save_new, cfg).then((jsonData) => {
           // console.log(self.selectedClassIds)
           let tempClass = _.filter(self.classList, function (item) {
             return (_.indexOf(self.selectedClassIds, item.ClassId) > -1)
@@ -306,7 +342,8 @@
           _.each(tempClass, function (item) {
             item.RatingDetails = {
               RatingResultDesc: (cfg.ratingItemResult === 1) ? '☆' : (cfg.ratingItemResult === 2 ? '△' : '⊙'),
-              Mome: cfg.ratingMome
+              Mome: cfg.ratingMome,
+              ImgPath: cfg.imgPath
             }
             let thisTd = $('#' + item.ClassId)
             thisTd.html(item.ClassName + '<span style="color:red">' + item.RatingDetails.RatingResultDesc + '</span>')
@@ -315,6 +352,7 @@
           })
           self.watchRatingItemId = new Date().getTime()
           self.openShow = false
+          self.imgPath = ''
         })
       },
       onClosePingJia () {

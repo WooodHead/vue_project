@@ -104,14 +104,13 @@
         if (this.MemberName1 && this.MemberName1.length > 0) {
           if (this.ExtTxt4 && this.ExtTxt4.length > 0) {
             if (this.ExtTxt2 && this.ExtTxt2.length > 0) {
-              for (var i in this.ExtTxt2) {
+              for (var i = 0; i < this.ExtTxt2.length; i++) {
                 if (!this.ExtTxt2[i].desc || this.ExtTxt2[i].desc.length < 1) {
                   return false
                 }
               }
               if (this.ExtTxt5 && this.ExtTxt5.length > 0) {
-                i = 0
-                for (i in this.ExtTxt5) {
+                for (i = 0; i < this.ExtTxt5.length; i++) {
                   if (!this.ExtTxt5[i].desc || this.ExtTxt5[i].desc.length < 1) {
                     return false
                   }
