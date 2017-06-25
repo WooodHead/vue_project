@@ -201,17 +201,17 @@
       },
       loadData() {
         const cfg = {
-          action: 'ownerClass,logisticsRepairAuditUser'
+          action: 'UnGraduationClass,logisticsRepairAuditUser'
         }
         if (this.Status === 0) {
           cfg.action += ',ownerInfo'
         }
         AppHelper.post2(AppHelper.ApiUrls.getCommInfo, cfg, pagePrefix).then((jsonData) => {
-          this.$data = Object.assign({}, this.$data, jsonData.data)
-          let cList = jsonData.data.ownerClassList
+          this.logisticsRepairAuditUser = jsonData.data.logisticsRepairAuditUser
+          let cList = jsonData.data.classList
           if (cList && cList.length > 0) {
             this.classList = []
-            for (var i = 0; i < this.cList.length; i++) {
+            for (var i = 0; i < cList.length; i++) {
               this.classList.push({value: cList[i].ClassId, name: cList[i].ClassName})
             }
             if (!this.ClassId) {
@@ -230,7 +230,8 @@
           }
           let ownerInfo = jsonData.data.ownerInfo
           if (ownerInfo && ownerInfo.UserId) {
-            this.$data = Object.assign({}, this.$data, ownerInfo)
+            this.UserName = ownerInfo.UserName
+            this.UserPhone = ownerInfo.UserPhone
           }
         })
       }

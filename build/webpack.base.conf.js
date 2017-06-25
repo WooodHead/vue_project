@@ -6,7 +6,7 @@ const projectRoot = path.resolve(__dirname, '../')
 module.exports = {
   entry: {
     app: './src/main.js',
-    vendor: ['lodash', 'scriptjs', 'vue', 'vue-router', 'vue-resource', 'vux', 'util/apphelper', 'vux-src/group', 'vux-src/cell', 'vux-src/cell', 'vux-src/card', 'vux-src/popup-picker'] // 第三方库打包入vendor.js
+    vendor: ['lodash', 'scriptjs', 'vue', 'vue-router', 'vue-resource', 'vux', 'util/apphelper', 'vux-src/group', 'vux-src/cell', 'vux-src/popup-picker', 'vux-src/scroller'] // 第三方库打包入vendor.js
   },
   output: {
     path: config.build.assetsRoot,
@@ -25,7 +25,8 @@ module.exports = {
     }
   },
   externals: {
-    storejs: 'window.store'
+    storejs: 'window.store',
+    moment: 'window.moment'
   },
   resolveLoader: {
     fallback: [path.join(__dirname, '../node_modules')]
@@ -37,46 +38,46 @@ module.exports = {
       include: projectRoot,
       exclude: /node_modules/
     }, {
-        test: /\.js$/,
-        loader: 'eslint',
-        include: projectRoot,
-        exclude: /node_modules/
-      }],
+      test: /\.js$/,
+      loader: 'eslint',
+      include: projectRoot,
+      exclude: /node_modules/
+    }],
     loaders: [{
       test: /\.vue$/,
       loader: 'vue'
     }, {
-        test: /\.js$/,
-        loader: 'babel',
-        include: projectRoot,
-        exclude: /node_modules/
-      }, {
-        test: /vux.src.*?js$/,
-        loader: 'babel'
-      }, {
-        test: /\.json$/,
-        loader: 'json'
-      }, {
-        test: /\.html$/,
-        loader: 'vue-html'
-      }, {
-        test: /\.css$/,
-        loaders: 'style!css',
-      }, {
-        test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
-        loader: 'url',
-        query: {
-          limit: 10000,
-          name: utils.assetsPath('img/[name].[hash:7].[ext]')
-        }
-      }, {
-        test: /\.(woff2?|eot|ttf|otf)(\?.*)?$/,
-        loader: 'url',
-        query: {
-          limit: 100000,
-          name: utils.assetsPath('fonts/[name].[hash:7].[ext]')
-        }
-      }]
+      test: /\.js$/,
+      loader: 'babel',
+      include: projectRoot,
+      exclude: /node_modules/
+    }, {
+      test: /vux.src.*?js$/,
+      loader: 'babel'
+    }, {
+      test: /\.json$/,
+      loader: 'json'
+    }, {
+      test: /\.html$/,
+      loader: 'vue-html'
+    }, {
+      test: /\.css$/,
+      loaders: 'style!css',
+    }, {
+      test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
+      loader: 'url',
+      query: {
+        limit: 10000,
+        name: utils.assetsPath('img/[name].[hash:7].[ext]')
+      }
+    }, {
+      test: /\.(woff2?|eot|ttf|otf)(\?.*)?$/,
+      loader: 'url',
+      query: {
+        limit: 100000,
+        name: utils.assetsPath('fonts/[name].[hash:7].[ext]')
+      }
+    }]
   },
   eslint: {
     formatter: require('eslint-friendly-formatter')

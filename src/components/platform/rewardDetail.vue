@@ -197,7 +197,7 @@
           let cList = jsonData.data.familyStudentList
           if (cList && cList.length > 0) {
             this.studentList = []
-            for (var i = 0; i < this.cList.length; i++) {
+            for (var i = 0; i < cList.length; i++) {
               this.studentList.push({value: cList[i].UserId, name: cList[i].ChineseName})
             }
             if (!this.MemberId) {
