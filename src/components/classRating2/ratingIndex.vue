@@ -72,7 +72,9 @@
 
     .popup0 {
       padding-bottom: 15px;
-      height: 480px;
+      margin-bottom:50px;
+      height: 500px;
+      overflow-y:auto;
     }
     .weui_cells_title {
       margin-top: .2em;
@@ -86,7 +88,6 @@
        font-size: 12px;
        margin:5px 0px 5px 10px;
     }
-
   </style>
   <group :title="today" style="background-color: #fff;padding-top: 5px;">
     <popup-picker title="选择评价项" :data="ratingItemList" :columns="(ratingItemList && ratingItemList.length>0)?1:0"
@@ -109,7 +110,7 @@
       </group>
       <group title="不合格的项目">
         <flexbox v-if="openItems&&openItems.length>0" :gutter="0" align="center" wrap="wrap">
-          <flexbox-item v-for="b in openItems" :span="1/3">
+          <flexbox-item v-for="b in openItems" :span="1/2">
             <x-button class="btn_mini" @click="onBtnSelect(b)"
                       style="width:88%"
                       :type="b.typeName"

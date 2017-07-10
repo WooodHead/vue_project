@@ -4,7 +4,7 @@
     <cell title="家访教师" :value="UserName"></cell>
     <cell title="访问时间" :value="HappenTime.substring(0,10)"></cell>
   </group>
-  <group title="交流沟通(在校)" v-show="ExtTxt3&&ExtTxt3.length>0">
+  <group title="交流沟通(在校)" v-show="false">
     <div class="weui_cell weui_cells_title">{{{ ExtTxt3 }}}</div>
   </group>
   <group title="基本情况">

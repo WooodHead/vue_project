@@ -36,7 +36,7 @@
     </group>
     <group title="班级评比(新)">
       <cell title="教师测试"
-            :link="'/rating2/index/?uid=1335ba2d-b2a6-422f-8060-5bb9ce0049cd_temp&companyId=0d81a477-0e48-4231-bb46-3888e55a4d2f_temp'"></cell>
+            :link="'/rating2/index/?uid=5813e74b-b97f-4113-afe7-206de2422462&companyId=c97c778c-37de-4f54-8672-d077398ae17b'"></cell>
     </group>
     <group title="社团课程">
       <cell title="教师测试" :link="'/rating/?userType=1&uid=1335ba2d-b2a6-422f-8060-5bb9ce0049cd_temp&typeCode=106&typeName=社团课程'"></cell>
